@@ -6,10 +6,10 @@ Inspired and largely based on Dotfile by haridas
 
 #Submodules
 - nerdtree
-  minibuffexpl
-  nerdcommenter
-  snipmate
-  syntastic
-  tagbar
-  fugitive
+- minibuffexpl
+- nerdcommenter
+- snipmate
+- syntastic
+- tagbar
+- fugitive
 
