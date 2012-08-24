@@ -2,7 +2,12 @@ Vimide
 ======
 
 A collection of vim scripts and plugins for coding productivity.
-Inspired and largely based on Dotfile by haridas
+Started off using settings from haridas/Dotfiles 
+
+#TODO
+- add a module to complete opening and closing pairs.
+  simple-pairs vimscript exists but does not function idealy
+- more snippits for snipmate
 
 #Submodules
 - nerdtree
@@ -12,4 +17,5 @@ Inspired and largely based on Dotfile by haridas
 - syntastic
 - tagbar
 - fugitive
+
 
