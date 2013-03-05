@@ -205,6 +205,8 @@ nmap <leader>j <ESC>:RopeGotoDefinition<cr>
 nmap <leader>l <ESC>:TagbarToggle<cr>
 imap <leader>l <ESC>:TagbarToggle<cr>i
 
+" Replacement syntax files for C++11 syntax "
+au BufNewFile,BufRead *.cpp set syntax=cpp11
 
 " =========== END Plugin Settings =========="
 "
