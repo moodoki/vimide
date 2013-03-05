@@ -207,6 +207,9 @@ imap <leader>l <ESC>:TagbarToggle<cr>i
 
 " Replacement syntax files for C++11 syntax "
 au BufNewFile,BufRead *.cpp set syntax=cpp11
+" Commands to tell syntastic to use C++0x or C++11 standard
+command Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
+command Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
 
 " =========== END Plugin Settings =========="
 "
