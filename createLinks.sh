@@ -13,6 +13,9 @@ then
     mv ~/.vim ~/.vim.bak
 fi
 
+git submodule init
+git submodule update
+
 ln -s $(pwd)/vim ~/.vim
 ln -s $(pwd)/vimrc ~/.vimrc
 
