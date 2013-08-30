@@ -28,6 +28,7 @@ set hidden
 set wildmenu
 set wildmode=list:longest
 set visualbell
+set clipboard+=unnamed "Yanks gos to clipboard"
 
 "set cursorline
 set ttyfast
@@ -61,6 +62,7 @@ set backupskip=/tmp/*,/private/tmp/*"
 
 " Enable Mouse
 set mouse=a
+set mousehide
 
 "Settings for Searching and Moving
 nnoremap / /\v
@@ -231,6 +233,9 @@ nmap <leader>j <ESC>:RopeGotoDefinition<cr>
 " Tagbar key bindings."
 nmap <leader>l <ESC>:TagbarToggle<cr>
 imap <leader>l <ESC>:TagbarToggle<cr>i
+
+" Change which file opens after executing :Rails command
+let g:rails_default_file='config/database.yml'
 
 " Replacement syntax files for C++11 syntax "
 au BufNewFile,BufRead *.cpp set syntax=cpp11
