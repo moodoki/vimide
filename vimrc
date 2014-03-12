@@ -245,3 +245,12 @@ command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
 
 " =========== END Plugin Settings =========="
 "
+" =========== Other Settings ==============="
+
+" Lilypond formats
+if isdirectory("/usr/share/lilypond/2.14.2/vim")
+    filetype off
+    set runtimepath+=/usr/share/lilypond/2.14.2/vim
+    filetype on
+endif
+
