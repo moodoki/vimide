@@ -13,9 +13,16 @@ then
     mv ~/.vim ~/.vim.bak
 fi
 
+if [ -e ~/.gdbinit ]
+then
+    echo Backing up ~/.gdbinit to ~/.gdbinit.bak
+    mv ~/.gdbinit ~/.gdbinit.bak
+fi
+
 git submodule init
 git submodule update
 
 ln -s $(pwd)/vim ~/.vim
 ln -s $(pwd)/vimrc ~/.vimrc
+ln -s $(pwd)/gdbinit88888888 ~/.gdbinit
 
