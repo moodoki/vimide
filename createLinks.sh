@@ -24,5 +24,5 @@ git submodule update
 
 ln -s $(pwd)/vim ~/.vim
 ln -s $(pwd)/vimrc ~/.vimrc
-ln -s $(pwd)/gdbinit88888888 ~/.gdbinit
+# ln -s $(pwd)/gdbinit8 ~/.gdbinit
 
