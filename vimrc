@@ -38,7 +38,7 @@ set laststatus=2
 
 "set relativenumber
 set number
-set norelativenumber
+silent! set norelativenumber
 
 "set undofile
 set shell=/bin/bash
@@ -82,7 +82,7 @@ vnoremap <tab> %
 set wrap
 set textwidth=79
 set formatoptions=qrn1
-set colorcolumn=79
+silent! set colorcolumn=79
 colorschem desert
 
 " To  show special characters in Vim
