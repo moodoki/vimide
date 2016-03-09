@@ -164,6 +164,12 @@ augroup END
 
 nnoremap g; g;zz
 
+" Movement between Windows
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
+
 " =========== END Basic Vim Settings ===========
 "
 " =========== Custom Functions ==========
