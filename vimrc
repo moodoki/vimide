@@ -41,7 +41,7 @@ set number
 silent! set norelativenumber
 
 "set undofile
-set shell=/bin/bash
+set shell=bash
 set lazyredraw
 set matchtime=3
 
