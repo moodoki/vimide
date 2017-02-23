@@ -132,6 +132,9 @@ nnoremap <leader>v V`]
 " ,ev Shortcut to edit .vimrc file on the fly on a vertical window.
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 
+" ,mm to run Make
+nnoremap <leader>m :w<cr>:Make<cr>
+
 
 " Working with split screen nicely
 " Resize Split When the window is resized"
