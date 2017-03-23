@@ -252,6 +252,9 @@ au BufNewFile,BufRead *.cpp set syntax=cpp11
 command! Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
 command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
 
+" Fix trailing whitespaces
+command! Fixtw %s/\s\+//e
+
 " vim-latex settings
 let g:tex_flavor='latex'
 " =========== END Plugin Settings =========="
