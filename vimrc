@@ -132,6 +132,9 @@ nnoremap <leader>v V`]
 " ,ev Shortcut to edit .vimrc file on the fly on a vertical window.
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 
+" ,mm to run Make
+nnoremap <leader>m :w<cr>:Make<cr>
+
 
 " Working with split screen nicely
 " Resize Split When the window is resized"
@@ -248,6 +251,9 @@ au BufNewFile,BufRead *.cpp set syntax=cpp11
 " Commands to tell syntastic to use C++0x or C++11 standard
 command! Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
 command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
+
+" Fix trailing whitespaces
+command! Fixtw %s/\s\+//e
 
 " vim-latex settings
 let g:tex_flavor='latex'
