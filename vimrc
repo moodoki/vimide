@@ -261,9 +261,6 @@ let g:tex_flavor='latex'
 "
 " =========== Other Settings ==============="
 
-" Auto load ctags if present
-set tags=./tags;/
-
 " Lilypond formats
 if isdirectory("/usr/share/lilypond/2.14.2/vim")
     filetype off
@@ -271,3 +268,38 @@ if isdirectory("/usr/share/lilypond/2.14.2/vim")
     filetype on
 endif
 
+" Auto load ctags if present
+set tags=./tags;/
+
+" Session saving and autoloading
+
+fu! SaveSess()
+    NERDTreeClose
+    MBECloseAll
+    if g:savesession
+        execute 'mksession! ' . getcwd() . '/.session.vim'
+    endif
+endfunction
+
+fu! RestoreSess()
+    if filereadable(getcwd() . '/.session.vim')
+        execute 'so ' .getcwd() . '/.session.vim'
+        if bufexists(1)
+            for l in range(1, bufnr('$'))
+                if bufwinnr(l) == -1
+                    exec 'sbuffer ' . l
+                endif
+            endfor
+        endif
+        let g:savesession=1
+        MBEOpen
+        NERDTree
+    endif
+endfunction
+
+autocmd VimLeave * call SaveSess()
+autocmd VimEnter * nested call RestoreSess()
+
+" Does not actually save the session, but sets the option for session to be
+" auto saved on exit
+command! SaveSess let g:savesession=1
