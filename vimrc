@@ -261,6 +261,9 @@ let g:tex_flavor='latex'
 "
 " =========== Other Settings ==============="
 
+" Auto load ctags if present
+set tags=./tags;/
+
 " Lilypond formats
 if isdirectory("/usr/share/lilypond/2.14.2/vim")
     filetype off
