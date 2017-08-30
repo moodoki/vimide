@@ -303,3 +303,4 @@ autocmd VimEnter * nested call RestoreSess()
 " Does not actually save the session, but sets the option for session to be
 " auto saved on exit
 command! SaveSess let g:savesession=1
+command! NoSaveSess let g:savesession=0
