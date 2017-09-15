@@ -31,5 +31,6 @@ git submodule update
 ln -s $(pwd)/vim ~/.vim
 ln -s $(pwd)/vimrc ~/.vimrc
 ln -s $(pwd)/bash_aliases ~/.bash_aliases
+ln -s $(pwd)/tmux.conf ~/.tmux.conf
 # ln -s $(pwd)/gdbinit8 ~/.gdbinit
 
