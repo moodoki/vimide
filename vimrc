@@ -38,10 +38,10 @@ set laststatus=2
 
 "set relativenumber
 set number
-set norelativenumber
+silent! set norelativenumber
 
 "set undofile
-set shell=/bin/bash
+set shell=bash
 set lazyredraw
 set matchtime=3
 
@@ -82,7 +82,7 @@ vnoremap <tab> %
 set wrap
 set textwidth=79
 set formatoptions=qrn1
-set colorcolumn=79
+silent! set colorcolumn=79
 colorschem desert
 
 " To  show special characters in Vim
@@ -132,6 +132,9 @@ nnoremap <leader>v V`]
 " ,ev Shortcut to edit .vimrc file on the fly on a vertical window.
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 
+" ,mm to run Make
+nnoremap <leader>m :w<cr>:Make<cr>
+
 
 " Working with split screen nicely
 " Resize Split When the window is resized"
@@ -163,6 +166,12 @@ augroup line_return
 augroup END
 
 nnoremap g; g;zz
+
+" Movement between Windows
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
 
 " =========== END Basic Vim Settings ===========
 "
@@ -243,6 +252,11 @@ au BufNewFile,BufRead *.cpp set syntax=cpp11
 command! Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
 command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
 
+" Fix trailing whitespaces
+command! Fixtw %s/\s\+//e
+
+" vim-latex settings
+let g:tex_flavor='latex'
 " =========== END Plugin Settings =========="
 "
 " =========== Other Settings ==============="
@@ -254,3 +268,39 @@ if isdirectory("/usr/share/lilypond/2.14.2/vim")
     filetype on
 endif
 
+" Auto load ctags if present
+set tags=./tags;/
+
+" Session saving and autoloading
+
+fu! SaveSess()
+    NERDTreeClose
+    MBECloseAll
+    if g:savesession
+        execute 'mksession! ' . getcwd() . '/.session.vim'
+    endif
+endfunction
+
+fu! RestoreSess()
+    if filereadable(getcwd() . '/.session.vim')
+        execute 'so ' .getcwd() . '/.session.vim'
+        if bufexists(1)
+            for l in range(1, bufnr('$'))
+                if bufwinnr(l) == -1
+                    exec 'sbuffer ' . l
+                endif
+            endfor
+        endif
+        let g:savesession=1
+        MBEOpen
+        NERDTree
+    endif
+endfunction
+
+autocmd VimLeave * call SaveSess()
+autocmd VimEnter * nested call RestoreSess()
+
+" Does not actually save the session, but sets the option for session to be
+" auto saved on exit
+command! SaveSess let g:savesession=1
+command! NoSaveSess let g:savesession=0
