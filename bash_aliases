@@ -9,3 +9,10 @@ fi
 alias xo='xdg-open'
 
 alias ta='tmux attach'
+
+
+ssh_portforward(){
+    ssh $1 -L $2:localhost:$2
+}
+
+alias s='ssh_portforward'
