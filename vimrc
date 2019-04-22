@@ -57,6 +57,11 @@ set dictionary=/usr/share/dict/words
 " Make pasting done without any indentation break."
 set pastetoggle=<F3>
 
+" Yank to buffer file for copy and pasting in different sessions
+vnoremap <C-y> :w! ~/.vimbuffer<CR>
+nnoremap <C-y> :.w! ~/.vimbuffer<CR>
+noremap <C-p> :r ~/.vimbuffer<CR>
+
 " Make Vim able to edit corntab fiels again.
 set backupskip=/tmp/*,/private/tmp/*"
 

@@ -9,3 +9,5 @@ fi
 alias xo='xdg-open'
 
 alias ta='tmux attach'
+
+alias ipnb='jupyter notebook --no-browser --ip="*"'
