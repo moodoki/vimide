@@ -25,6 +25,16 @@ then
     mv ~/.gdbinit ~/.gdbinit.bak
 fi
 
+if [ ! -e ~/.fonts ]
+then
+    mkdir ~/.fonts
+fi
+
+if [ ! -e ~/.config ]
+then
+    mkdir ~/.config
+fi
+
 git submodule init
 git submodule update
 
@@ -32,5 +42,8 @@ ln -s $(pwd)/vim ~/.vim
 ln -s $(pwd)/vimrc ~/.vimrc
 ln -s $(pwd)/bash_aliases ~/.bash_aliases
 ln -s $(pwd)/tmux.conf ~/.tmux.conf
+ln -s $(pwd)/fonts ~/.fonts/vimide_fonts
+ln -s $(pwd)/nvim_config ~/.config/nvim
 # ln -s $(pwd)/gdbinit8 ~/.gdbinit
 
+fc-cache -s
