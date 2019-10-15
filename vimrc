@@ -89,6 +89,7 @@ set textwidth=79
 set formatoptions=qrn1
 silent! set colorcolumn=79
 colorschem desert
+set linebreak
 
 " To  show special characters in Vim
 "set list
@@ -120,8 +121,8 @@ nnoremap ; :
 " Set vim to save the file on focus out.
 au FocusLost * :wa
 
-" Adding More Shorcuts keys using leader kye.
-" Leader Kye provide separate namespace for specific commands.
+" Adding More Shorcuts keys using leader key.
+" Leader Key provide separate namespace for specific commands.
 ",W Command to remove white space from a file.
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 
