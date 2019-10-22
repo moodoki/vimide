@@ -9,6 +9,12 @@ if [ -x ~/py2env ]; then
     alias p2='source ~/py2env/bin/activate'
 fi
 
+function activate(){
+    source ~/.venvs/$1/bin/activate
+}
+
+complete -W $(ls ~/.venvs/) activate
+
 alias xo='xdg-open'
 
 alias ipnb='jupyter notebook --no-browser --ip="*"'
