@@ -231,6 +231,9 @@ endif
 
 
 " ========== Plugin Settings =========="
+"
+" Sparkup
+let g:sparkupNextMapping='<c-t>'
 
 " Mapping to NERDTree
 nnoremap <C-n> :NERDTreeToggle<cr>
