@@ -78,7 +78,7 @@ conky.config = {
 };
 
 conky.text = [[
-${color #000000}${font Conky Icons by Carelli:size=30}ƃ ${color}${font Conky Icons by Carelli:size=14}ǒ${font}${uptime}${goto 350}${font Symbola:size=14}🔋 ${font}${battery_short}
+${color #000000}${font Conky Icons by Carelli:size=30}ƃ ${color}${font Conky Icons by Carelli:size=14}ǒ${font}${uptime}${goto 350}${font Noto Sans:size=14}🔋 ${font}${battery_short}
 ${hr 2}
 ${font}${distribution} - ${kernel}
 
@@ -91,23 +91,22 @@ ${color #f8df58}${font Conky Icons by Carelli:size=14}i ${font}${execi 60 dig +s
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}ň ${font}Storage${color}
 ${goto 50}${font Conky Icons by Carelli:size=14}Ǒ ${font}${goto 90}ssd:${goto 140}${fs_bar 7,75 /}${goto 225}${fs_used_perc /}%
-${goto 50}Read ${goto 90}ssd: ${diskio_read /dev/nvme0n1}${goto 225} Write ssd: ${diskio_write /dev/nvme0n1}
-${goto 50}${diskiograph_read /dev/nvme0n1 20,80 2216e1 2216e1}${goto 225}${diskiograph_write /dev/nvme0n1 20,80 DD3A21 DD3A21}
-${goto 50}Read ${goto 90}mmc: ${diskio_read /dev/mmcblk0}${goto 225} Write mmc: ${diskio_write /dev/mmcblk0}
-${goto 50}${diskiograph_read /dev/mmcblk0 20,80 2216e1 2216e1}${goto 225}${diskiograph_write /dev/mmcblk0 20,80 DD3A21 DD3A21}
+${goto 50}Read ${goto 90}ssd: ${diskio_read /dev/sda2}${goto 225} Write ssd: ${diskio_write /dev/sda2}
+${goto 50}${diskiograph_read /dev/sda2 20,80 2216e1 2216e1}${goto 225}${diskiograph_write /dev/sda2 20,80 DD3A21 DD3A21}
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}Ŵ ${font}CPU${voffset -5.5}${goto 225}${font Conky Icons by Carelli:size=14}B ${font}Memory${color}${font}
 ${goto 50}${cpu cpu0}%${goto 92}${cpubar 7,80 cpu}${goto 225}RAM:${goto 268}$memperc%${goto 302}${membar 7,80}
 ${goto 50}${cpu cpu1}%${goto 92}${cpubar 7,80 cpu0}${goto 225}SWAP:${goto 268}$swapperc%${goto 302}${swapbar 7,80}
-${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu1}
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu2}
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}
+${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu1}${color #f8df58}${goto 225}${font Conky Icons by Carelli:size=14}A ${font}GPU${color}${font}${color}
+${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu2}${goto 225}GPU: ${nvidia gpuutil}%
+${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}${goto 225}GPU: ${nvidia membwutil}%
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}ǘ ${font}Temperature${color}
 ${goto 50}acpitz: ${goto 150}${hwmon 0 temp 1}°C ${hwmon 0 temp 2}°C
 ${goto 50}pch_skylake: ${goto 150}${hwmon 1 temp 1}°C
 ${goto 50}coretemp: ${goto 150}${hwmon 2 temp 1}°C
 ${goto 50}iwlwifi: ${goto 150}${hwmon 3 temp 1}°C
+${goto 50}GPU: ${goto 150}${nvidia temp}°C
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}Ŷ ${font}Processes
 ${goto 40}Name ${goto 170}PID${goto 225}CPU${goto 280}MEM${color}
