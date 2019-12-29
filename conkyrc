@@ -97,9 +97,10 @@ ${goto 50}${diskiograph_read /dev/sda2 20,80 2216e1 2216e1}${goto 225}${diskiogr
 ${color #f8df58}${font Conky Icons by Carelli:size=14}Ŵ ${font}CPU${voffset -5.5}${goto 225}${font Conky Icons by Carelli:size=14}B ${font}Memory${color}${font}
 ${goto 50}${cpu cpu0}%${goto 92}${cpubar 7,80 cpu}${goto 225}RAM:${goto 268}$memperc%${goto 302}${membar 7,80}
 ${goto 50}${cpu cpu1}%${goto 92}${cpubar 7,80 cpu0}${goto 225}SWAP:${goto 268}$swapperc%${goto 302}${swapbar 7,80}
-${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu1}${color #f8df58}${goto 225}${font Conky Icons by Carelli:size=14}A ${font}GPU${color}${font}${color}
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu2}${goto 225}GPU: ${nvidia gpuutil}%
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}${goto 225}GPU: ${nvidia membwutil}%
+${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu1}${color #f8df58}${goto 225}${font Conky Icons by Carelli:size=12}A ${font}${nvidia modelname}${color}${font}${color}
+${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu2}${goto 225}Util: ${nvidia gpuutil}%${goto 302}${nvidiabar 7,80 gpuutil}
+${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}${goto 225}Mem: ${nvidia memutil}%${goto 302}${nvidiabar 7,80 memutil}
+  ${goto 225}Fan: ${nvidia fanlevel}%${goto 302}${nvidiabar 7,80 fanlevel}
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}ǘ ${font}Temperature${color}
 ${goto 50}acpitz: ${goto 150}${hwmon 0 temp 1}°C ${hwmon 0 temp 2}°C
