@@ -13,7 +13,14 @@ function activate(){
     source ~/.venvs/$1/bin/activate
 }
 
-complete -W $(ls ~/.venvs/) activate
+_list_venvs(){
+    local cur _venvs
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    _venvs=$(ls ~/.venvs/)
+    COMPREPLY=( $(compgen -W "${_venvs}" -- ${cur}) )
+}
+
+complete -F _list_venvs activate
 
 alias xo='xdg-open'
 
@@ -28,3 +35,5 @@ ssh_portforward(){
 }
 
 alias s='ssh_portforward'
+
+alias df='df -x squashfs'
