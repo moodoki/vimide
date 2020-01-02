@@ -90,24 +90,26 @@ ${goto 50}${font Conky Icons by Carelli:size=14}Ǘ ${font}${goto 85}${wireless_e
 ${color #f8df58}${font Conky Icons by Carelli:size=14}i ${font}${execi 60 dig +short myip.opendns.com @resolver1.opendns.com }${color}
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}ň ${font}Storage${color}
-${goto 50}${font Conky Icons by Carelli:size=14}Ǒ ${font}${goto 90}ssd:${goto 140}${fs_bar 7,75 /}${goto 225}${fs_used_perc /}%
+${goto 50}${font Conky Icons by Carelli:size=14}Ǒ ${font}${goto 90}os:${goto 140}${fs_bar 7,75 /}${goto 225}${fs_used_perc /}%
+${goto 50}Read ${goto 90}ssd: ${diskio_read /dev/mapper/nvme0n1p8_crypt}${goto 225} Write ssd: ${diskio_write /dev/mapper/nvme0n1p8_crypt}
+${goto 50}${diskiograph_read /dev/mapper/nvme0n1p8_crypt 20,80 2216e1 2216e1}${goto 225}${diskiograph_write /dev/mapper/nvme0n1p8_crypt 20,80 DD3A21 DD3A21}
 ${goto 50}Read ${goto 90}ssd: ${diskio_read /dev/sda2}${goto 225} Write ssd: ${diskio_write /dev/sda2}
 ${goto 50}${diskiograph_read /dev/sda2 20,80 2216e1 2216e1}${goto 225}${diskiograph_write /dev/sda2 20,80 DD3A21 DD3A21}
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}Ŵ ${font}CPU${voffset -5.5}${goto 225}${font Conky Icons by Carelli:size=14}B ${font}Memory${color}${font}
-${goto 50}${cpu cpu0}%${goto 92}${cpubar 7,80 cpu}${goto 225}RAM:${goto 268}$memperc%${goto 302}${membar 7,80}
-${goto 50}${cpu cpu1}%${goto 92}${cpubar 7,80 cpu0}${goto 225}SWAP:${goto 268}$swapperc%${goto 302}${swapbar 7,80}
-${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu1}${color #f8df58}${goto 225}${font Conky Icons by Carelli:size=12}A ${font}${nvidia modelname}${color}${font}${color}
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu2}${goto 225}Util: ${nvidia gpuutil}%${goto 302}${nvidiabar 7,80 gpuutil}
-${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}${goto 225}Mem: ${nvidia memutil}%${goto 302}${nvidiabar 7,80 memutil}
+${goto 50}${cpu cpu0}%${goto 92}${cpubar 7,80 cpu0}${goto 225}RAM:${goto 268}$memperc%${goto 302}${membar 7,80}
+${goto 50}${cpu cpu1}%${goto 92}${cpubar 7,80 cpu1}${goto 225}SWAP:${goto 268}$swapperc%${goto 302}${swapbar 7,80}
+${goto 50}${cpu cpu2}%${goto 92}${cpubar 7,80 cpu2}${color #f8df58}${goto 225}${font Conky Icons by Carelli:size=12}A ${font}${nvidia modelname}${color}${font}${color}
+${goto 50}${cpu cpu3}%${goto 92}${cpubar 7,80 cpu3}${goto 225}Util: ${nvidia gpuutil}%${goto 302}${nvidiabar 7,80 gpuutil}
+${goto 50}${cpu cpu4}%${goto 92}${cpubar 7,80 cpu4}${goto 225}Mem: ${nvidia memutil}%${goto 302}${nvidiabar 7,80 memutil}
   ${goto 225}Fan: ${nvidia fanlevel}%${goto 302}${nvidiabar 7,80 fanlevel}
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}ǘ ${font}Temperature${color}
-${goto 50}acpitz: ${goto 150}${hwmon 0 temp 1}°C ${hwmon 0 temp 2}°C
-${goto 50}pch_skylake: ${goto 150}${hwmon 1 temp 1}°C
-${goto 50}coretemp: ${goto 150}${hwmon 2 temp 1}°C
-${goto 50}iwlwifi: ${goto 150}${hwmon 3 temp 1}°C
-${goto 50}GPU: ${goto 150}${nvidia temp}°C
+${goto 50}coretemp: ${goto 150}${hwmon 7 temp 1}°C (${hwmon 7 temp 2}°C ${hwmon 7 temp 3}°C)
+${goto 50}pch_skylake: ${goto 150}${hwmon 5 temp 1}°C
+${goto 50}iwlwifi: ${goto 150}${hwmon 6 temp 1}°C
+${goto 50}acpitz: ${goto 150}${hwmon 1 temp 1}°C ${hwmon 1 temp 2}°C
+${goto 50}GPU: ${goto 150}${nvidia gputemp}°C
 
 ${color #f8df58}${font Conky Icons by Carelli:size=14}Ŷ ${font}Processes
 ${goto 40}Name ${goto 170}PID${goto 225}CPU${goto 280}MEM${color}
