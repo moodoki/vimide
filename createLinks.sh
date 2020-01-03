@@ -1,5 +1,16 @@
 #!/bin/bash
 
+#local bin for scripts
+if [ ! -e ~/bin ]
+then
+    mkdir ~/bin
+fi
+
+for _s in scripts/*
+do
+    ln -s $(pwd)/"$_s" "~/bin/$(basename ${_s%.*})"
+done
+
 #backup originals if exists
 if [ -e ~/.vimrc ]
 then
