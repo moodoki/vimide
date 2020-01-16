@@ -6,11 +6,12 @@ python3 -m venv ~/.venvs/${venvname}
 source ~/.venvs/${venvname}/bin/activate
 
 pip install --upgrade pip
+pip install --upgrade setuptools
 pip install matplotlib
 pip install jupyter
 pip install jupyterlab
 pip install numpy scipy
-pip install tensorflow-gpu
+pip install tensorflow
 pip install tensorflow-addons
 pip install torch torchvision
 pip install seaborn bokeh
