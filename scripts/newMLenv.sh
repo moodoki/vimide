@@ -1,8 +1,10 @@
 #!/bin/bash
 
 venvname=${1:-mlenv}
+other_args=${@:2}
 
-python3 -m venv ~/.venvs/${venvname}
+echo python3 -m venv ~/.venvs/${venvname} ${other_args}
+python3 -m venv ~/.venvs/${venvname} ${other_args}
 source ~/.venvs/${venvname}/bin/activate
 
 pip install --upgrade pip
