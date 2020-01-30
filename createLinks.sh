@@ -8,7 +8,7 @@ fi
 
 for _s in scripts/*
 do
-    ln -s $(pwd)/"$_s" "~/bin/$(basename ${_s%.*})"
+    ln -s $(pwd)/"$_s" "${HOME}/bin/$(basename ${_s%.*})"
 done
 
 #backup originals if exists
