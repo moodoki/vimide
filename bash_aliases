@@ -27,8 +27,8 @@ alias xo='xdg-open'
 alias ipnb='jupyter notebook --no-browser --ip="*"'
 alias ta='tmux attach || tmux new'
 
-alias pbcopy='xsel --clipboard --input'
-alias pbpaste='xsel --clipboard --output'
+alias pbcopy='xclip -selection clipboard -i'
+alias pbpaste='xclip -selection clipboard -o'
 
 ssh_portforward(){
     ssh $1 -L $2:localhost:$2
