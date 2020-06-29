@@ -57,6 +57,11 @@ set dictionary=/usr/share/dict/words
 " Make pasting done without any indentation break."
 set pastetoggle=<F3>
 
+" Yank to buffer file for copy and pasting in different sessions
+vnoremap <C-y> :w! ~/.vimbuffer<CR>
+nnoremap <C-y> :.w! ~/.vimbuffer<CR>
+noremap <C-p> :r ~/.vimbuffer<CR>
+
 " Make Vim able to edit corntab fiels again.
 set backupskip=/tmp/*,/private/tmp/*"
 
@@ -84,6 +89,7 @@ set textwidth=79
 set formatoptions=qrn1
 silent! set colorcolumn=79
 colorschem desert
+set linebreak
 
 " To  show special characters in Vim
 "set list
@@ -115,8 +121,8 @@ nnoremap ; :
 " Set vim to save the file on focus out.
 au FocusLost * :wa
 
-" Adding More Shorcuts keys using leader kye.
-" Leader Kye provide separate namespace for specific commands.
+" Adding More Shorcuts keys using leader key.
+" Leader Key provide separate namespace for specific commands.
 ",W Command to remove white space from a file.
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 
@@ -225,6 +231,9 @@ endif
 
 
 " ========== Plugin Settings =========="
+"
+" Sparkup
+let g:sparkupNextMapping='<c-t>'
 
 " Mapping to NERDTree
 nnoremap <C-n> :NERDTreeToggle<cr>

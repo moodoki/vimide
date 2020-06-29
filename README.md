@@ -18,4 +18,5 @@ Started off using settings from haridas/Dotfiles
 - tagbar
 - fugitive
 
-
+# Symbols font in conkyrc
+https://github.com/antoniocarelli/conky 
