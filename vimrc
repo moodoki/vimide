@@ -85,9 +85,9 @@ vnoremap <tab> %
 
 " Make Vim to handle long lines nicely.
 set wrap
-set textwidth=79
+set textwidth=99
 set formatoptions=qrn1
-silent! set colorcolumn=79
+silent! set colorcolumn=79,99
 colorschem desert
 set linebreak
 

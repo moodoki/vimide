@@ -36,6 +36,11 @@ ssh_portforward(){
     ssh $1 -L $2:localhost:$2
 }
 
+ssh_tmuxattach(){
+    ssh $1 -t 'tmux attach || tmux new'
+}
+
 alias s='ssh_portforward'
+alias sa='ssh_tmuxattach'
 
 alias df='df -x squashfs'
