@@ -46,7 +46,7 @@ alias sa='ssh_tmuxattach'
 alias df='df -x squashfs'
 
 watch_dir_run(){
-    while inotifywait --exclude .swp @.git -e modify -e move -e create -e delete -r .
+    while inotifywait --exclude '/\..+' -e modify -e move -e create -e delete -r .
     do $@
     done
 }
