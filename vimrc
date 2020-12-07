@@ -89,6 +89,7 @@ set textwidth=99
 set formatoptions=qrn1
 silent! set colorcolumn=79,99
 colorschem desert
+highlight ColorColumn ctermbg=darkgrey guibg=darkgrey
 set linebreak
 
 " To  show special characters in Vim
