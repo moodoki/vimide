@@ -13,7 +13,7 @@ Started off using settings from haridas/Dotfiles
 - nerdtree
 - minibuffexpl
 - nerdcommenter
-- snipmate
+- snipmate (note: msanders/vim-snipmate.git is now defunct, use garbas/vim-snipmate.git instead)
 - syntastic
 - tagbar
 - fugitive
