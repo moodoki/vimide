@@ -314,3 +314,6 @@ autocmd VimEnter * nested call RestoreSess()
 " auto saved on exit
 command! SaveSess let g:savesession=1
 command! NoSaveSess let g:savesession=0
+
+" SnipMate deprecation??
+let g:snipMate = {'snippet_version': 1}
