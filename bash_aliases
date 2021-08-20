@@ -43,7 +43,7 @@ ssh_tmuxattach(){
 alias s='ssh_portforward'
 alias sa='ssh_tmuxattach'
 
-alias df='df -x squashfs'
+alias df='df -x squashfs -x tmpfs -x devtmpfs'
 
 watch_dir_run(){
     while inotifywait --exclude '/\..+' -e modify -e move -e create -e delete -r .
