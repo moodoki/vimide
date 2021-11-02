@@ -40,3 +40,6 @@
 [submodule "vim/bundle/surround"]
 	path = vim/bundle/vim-surround
 	url = https://tpope.io/vim/surround.git
+[submodule "nvim_config/pack/github/start/copilot.vim"]
+	path = nvim_config/pack/github/start/copilot.vim
+	url = https://github.com/github/copilot.vim.git
