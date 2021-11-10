@@ -267,6 +267,11 @@ command! Fixtw %s/\s\+//e
 
 " vim-latex settings
 let g:tex_flavor='latex'
+
+
+" snipmate
+let g:snipMate = { 'snippet_version' : 1 }
+
 " =========== END Plugin Settings =========="
 "
 " =========== Other Settings ==============="
