@@ -50,3 +50,8 @@ watch_dir_run(){
     do $@
     done
 }
+
+start_agent(){
+    eval `ssh-agent -s`
+    ssh-add
+}
