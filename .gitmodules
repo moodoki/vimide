@@ -7,9 +7,6 @@
 [submodule "vim/bundle/nerdcommenter"]
 	path = vim/bundle/nerdcommenter
 	url = https://github.com/scrooloose/nerdcommenter.git
-[submodule "vim/bundle/snipmate"]
-	path = vim/bundle/snipmate
-	url = git@github.com:moodoki/snipmate.vim.git
 [submodule "vim/bundle/syntastic"]
 	path = vim/bundle/syntastic
 	url = https://github.com/scrooloose/syntastic.git
@@ -43,3 +40,6 @@
 [submodule "nvim_config/pack/github/start/copilot.vim"]
 	path = nvim_config/pack/github/start/copilot.vim
 	url = https://github.com/github/copilot.vim.git
+[submodule "vim/bundle/ale"]
+	path = vim/bundle/ale
+	url = https://github.com/dense-analysis/ale.git

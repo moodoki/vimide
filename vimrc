@@ -257,16 +257,6 @@ imap <leader>l <ESC>:TagbarToggle<cr>i
 let g:rails_default_file='config/database.yml'
 
 
-" Syntastic settings
-"" Python
-let g:syntastic_python_checkers = ['flake8']
-" Replacement syntax files for C++11 syntax "
-au BufNewFile,BufRead *.cpp set syntax=cpp11
-" Commands to tell syntastic to use C++0x or C++11 standard
-command! Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
-command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
-
-
 " vim-latex settings
 let g:tex_flavor='latex'
 
