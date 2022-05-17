@@ -5,7 +5,7 @@ set shm=
 
 " Pathogen settings.
 filetype off
-call pathogen#runtime_append_all_bundles()
+call pathogen#infect()
 filetype plugin indent on
 
 " Make vim incompatbile to vi.
@@ -256,14 +256,16 @@ imap <leader>l <ESC>:TagbarToggle<cr>i
 " Change which file opens after executing :Rails command
 let g:rails_default_file='config/database.yml'
 
+
+" Syntastic settings
+"" Python
+let g:syntastic_python_checkers = ['flake8']
 " Replacement syntax files for C++11 syntax "
 au BufNewFile,BufRead *.cpp set syntax=cpp11
 " Commands to tell syntastic to use C++0x or C++11 standard
 command! Cpp0x let g:syntastic_cpp_compiler_options=' -std=c++0x'
 command! Cpp11 let g:syntastic_cpp_compiler_options=' -std=c++11'
 
-" Fix trailing whitespaces
-command! Fixtw %s/\s\+//e
 
 " vim-latex settings
 let g:tex_flavor='latex'
