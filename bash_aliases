@@ -22,7 +22,11 @@ _list_venvs(){
 
 complete -F _list_venvs activate
 
-alias xo='xdg-open'
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    alias xo='xdg-open'
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    alias xo='open'
+fi
 
 alias ipnb='jupyter notebook --no-browser --ip="*"'
 alias ta='tmux attach || tmux new'
@@ -43,7 +47,11 @@ ssh_tmuxattach(){
 alias s='ssh_portforward'
 alias sa='ssh_tmuxattach'
 
-alias df='df -x squashfs -x tmpfs -x devtmpfs'
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    alias df='df -x squashfs -x tmpfs -x devtmpfs'
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    :
+fi
 
 watch_dir_run(){
     while inotifywait --exclude '/\..+' -e modify -e move -e create -e delete -r .
