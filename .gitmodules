@@ -21,7 +21,7 @@
 	url = https://github.com/christoomey/vim-tmux-navigator.git
 [submodule "vim/bundle/vim-dispatch"]
 	path = vim/bundle/vim-dispatch
-	url = git://github.com/tpope/vim-dispatch.git
+	url = https://github.com/tpope/vim-dispatch.git
 [submodule "vim/bundle/vim-addon-mw-utils"]
 	path = vim/bundle/vim-addon-mw-utils
 	url = https://github.com/MarcWeber/vim-addon-mw-utils.git
@@ -36,7 +36,7 @@
 	url = https://github.com/plytophogy/vim-virtualenv.git
 [submodule "vim/bundle/surround"]
 	path = vim/bundle/vim-surround
-	url = https://tpope.io/vim/surround.git
+	url = https://github.com/tpope/surround.git
 [submodule "nvim_config/pack/github/start/copilot.vim"]
 	path = nvim_config/pack/github/start/copilot.vim
 	url = https://github.com/github/copilot.vim.git
