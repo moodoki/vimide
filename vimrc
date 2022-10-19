@@ -257,6 +257,9 @@ imap <leader>l <ESC>:TagbarToggle<cr>i
 let g:rails_default_file='config/database.yml'
 
 
+" ALE settings
+
+
 " vim-latex settings
 let g:tex_flavor='latex'
 
