@@ -58,4 +58,8 @@ ln -s $(pwd)/nvim_config ~/.config/nvim
 ln -s $(pwd)/conkyrc ~/.conkyrc
 # ln -s $(pwd)/gdbinit8 ~/.gdbinit
 
-fc-cache -s
+if command -v fc-cache ; then
+    fc-cache -s
+else
+    echo "fc-cache not found. Not updating custom fonts"
+fi
