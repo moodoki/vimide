@@ -55,7 +55,11 @@ set title
 set dictionary=/usr/share/dict/words
 
 " Make pasting done without any indentation break."
-set pastetoggle=<F3>
+" This option is not required in neovim
+if !has('nvim')
+    set pastetoggle=<F3>
+endif
+
 
 " Yank to buffer file for copy and pasting in different sessions
 vnoremap <C-y> :w! ~/.vimbuffer<CR>
@@ -88,7 +92,7 @@ set wrap
 set textwidth=99
 set formatoptions=qrn1
 silent! set colorcolumn=79,99
-colorschem desert
+colorschem zaibatsu
 highlight ColorColumn ctermbg=darkgrey guibg=darkgrey
 set linebreak
 

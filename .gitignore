@@ -2,3 +2,4 @@
 *.swp
 .VimballRecord
 .uuid
+.DS_Store

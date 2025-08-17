@@ -63,3 +63,8 @@ start_agent(){
     eval `ssh-agent -s`
     ssh-add
 }
+
+# Default color ls for Mac
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    alias ls='ls -G'
+fi
