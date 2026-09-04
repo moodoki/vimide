@@ -78,13 +78,15 @@ nnoremap / /\v
 vnoremap / /\v
 set ignorecase
 set smartcase
-set gdefault
+" No 'gdefault': it inverts the meaning of the /g flag, so every :s command
+" from documentation, a colleague or a plugin does the opposite of what it says.
 set incsearch
 set showmatch
 set hlsearch
 nnoremap <leader><space> :noh<cr>
-nnoremap <tab> %
-vnoremap <tab> %
+" <Tab> is not mapped to %: in a terminal <Tab> and <C-i> are the same keycode,
+" so mapping it silently disables <C-i> (jump forward in the jumplist), leaving
+" <C-o> working and no way back. % is already one keystroke.
 
 
 " Make Vim to handle long lines nicely.
