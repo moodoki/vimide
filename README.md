@@ -10,27 +10,49 @@ Install
 ```sh
 git clone --recurse-submodules <this repo>
 cd vimide
-./createLinks.sh
+./createLinks.sh --dry-run    # see what it would do
+./createLinks.sh              # do it
 ```
 
-`createLinks.sh` backs up any existing `~/.vimrc`, `~/.vim`, `~/.bash_aliases`
-and `~/.gdbinit` to `*.bak`, then symlinks:
+Supported on macOS and Linux (primary Linux target: Ubuntu 24.04).
+
+The installer is idempotent -- re-run it any time to repair or update links.
+It never deletes anything: a real file or directory in the way is moved to a
+timestamped `*.bak-YYYYmmddHHMMSS` beside it, and a symlink already pointing
+at this repo is left alone (compared by inode, so an equivalent path such as
+`~/code` -> `/Volumes/code` still counts as correct).
+
+| Flag | Effect |
+| --- | --- |
+| `-n`, `--dry-run` | Print what would change; touch nothing |
+| `--no-submodules` | Skip `git submodule sync/update` |
+| `--no-fonts` | Skip font installation |
+| `--no-deps` | Skip the dependency check |
+| `-h`, `--help` | Usage |
+
+What it links:
 
 | Target | Link |
 | --- | --- |
 | `vim/` | `~/.vim` |
 | `vimrc` | `~/.vimrc` |
-| `nvim_config/` | `~/.config/nvim` |
+| `nvim_config/` | `$XDG_CONFIG_HOME/nvim` (default `~/.config/nvim`) |
 | `bash_aliases` | `~/.bash_aliases` |
 | `tmux.conf` | `~/.tmux.conf` |
-| `fonts/` | `~/.fonts/vimide_fonts` |
-| `scripts/*` | `~/bin/*` |
+| `scripts/*` | `~/bin/*` (extension stripped) |
 
-It is **not** idempotent — re-running it over an existing install will nest
-symlinks. Remove the links first if you need to re-run it.
+Fonts differ by platform, because the two font systems do:
 
-Note: the font step targets `~/.fonts` (fontconfig), which is Linux-only.
-On macOS, copy `fonts/**/*.ttf` into `~/Library/Fonts` instead.
+- **macOS** -- each `.ttf` is linked individually into `~/Library/Fonts`.
+  CoreText does not recurse into subdirectories, so a single directory link
+  would be silently ignored.
+- **Linux** -- one directory link into `$XDG_DATA_HOME/fonts` (or `~/.fonts`
+  if that already exists), then `fc-cache -f`. fontconfig does recurse.
+
+The dependency check reports only and installs nothing, printing the right
+`brew install` or `sudo apt install` hint per platform. Note that macOS ships
+a BSD `ctags` in `/usr/bin` that tagbar cannot use -- the check flags it and
+points at `universal-ctags`.
 
 Plugins
 -------
