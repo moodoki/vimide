@@ -64,7 +64,9 @@ start_agent(){
     ssh-add
 }
 
-# Default color ls for Mac
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+# Colourised ls: -G on BSD/macOS, --color on GNU coreutils
+if [[ "$OSTYPE" == "darwin"* ]]; then
     alias ls='ls -G'
+else
+    alias ls='ls --color=auto'
 fi

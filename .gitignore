@@ -3,3 +3,4 @@
 .VimballRecord
 .uuid
 .DS_Store
+.session.vim

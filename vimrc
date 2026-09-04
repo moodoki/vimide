@@ -67,7 +67,7 @@ nnoremap <C-y> :.w! ~/.vimbuffer<CR>
 noremap <C-p> :r ~/.vimbuffer<CR>
 
 " Make Vim able to edit corntab fiels again.
-set backupskip=/tmp/*,/private/tmp/*"
+set backupskip=/tmp/*,/private/tmp/*
 
 " Enable Mouse
 set mouse=a
@@ -237,9 +237,6 @@ endif
 
 " ========== Plugin Settings =========="
 "
-" Sparkup
-let g:sparkupNextMapping='<c-t>'
-
 " Mapping to NERDTree
 nnoremap <C-n> :NERDTreeToggle<cr>
 
@@ -249,17 +246,9 @@ let g:miniBufExplMapWindowNavArrows = 1
 let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1
 
-" Rope Plugin settings
-imap <leader>j <ESC>:RopeGotoDefinition<cr>
-nmap <leader>j <ESC>:RopeGotoDefinition<cr>
-
 " Tagbar key bindings."
 nmap <leader>l <ESC>:TagbarToggle<cr>
 imap <leader>l <ESC>:TagbarToggle<cr>i
-
-" Change which file opens after executing :Rails command
-let g:rails_default_file='config/database.yml'
-
 
 " ALE settings
 
@@ -267,9 +256,6 @@ let g:rails_default_file='config/database.yml'
 " vim-latex settings
 let g:tex_flavor='latex'
 
-
-" snipmate
-let g:snipMate = { 'snippet_version' : 1 }
 
 " =========== END Plugin Settings =========="
 "
@@ -286,6 +272,8 @@ endif
 set tags=./tags;/
 
 " Session saving and autoloading
+
+let g:savesession = get(g:, 'savesession', 0)
 
 fu! SaveSess()
     NERDTreeClose
@@ -319,5 +307,3 @@ autocmd VimEnter * nested call RestoreSess()
 command! SaveSess let g:savesession=1
 command! NoSaveSess let g:savesession=0
 
-" SnipMate deprecation??
-let g:snipMate = {'snippet_version': 1}
