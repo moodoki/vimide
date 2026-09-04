@@ -276,39 +276,88 @@ endif
 " Auto load ctags if present
 set tags=./tags;/
 
-" Session saving and autoloading
+" ---- Session save / restore ----------------------------------------------
+" Opt-in per directory: a directory only gets a session once you run :SaveSess
+" there. After that, starting vim in it with no file arguments restores the
+" session, and quitting re-saves it.
 
 let g:savesession = get(g:, 'savesession', 0)
 
-fu! SaveSess()
-    NERDTreeClose
-    MBECloseAll
-    if g:savesession
-        execute 'mksession! ' . getcwd() . '/.session.vim'
+" The default includes 'options', which bakes every option and mapping into
+" the session file -- the usual reason a restored session behaves unlike a
+" fresh vim. 'terminal' is dropped too; restoring terminal buffers is rarely
+" what you want.
+set sessionoptions=buffers,curdir,folds,help,tabpages,winsize
+
+" Fixed at startup so VimLeave still writes to the directory vim was launched
+" in, even if the session or an autocmd changed the working directory.
+let s:session_file = getcwd() . '/.session.vim'
+
+" Sidebars are excluded from the session and reopened afterwards, so the
+" session stores real windows only. Guarded: the config still loads if the
+" plugins are absent.
+function! s:CloseSidebars() abort
+    " Note: `silent!` swallows a following bar, so these cannot be written as
+    " one-line `if ... | silent! Cmd | endif` -- that raises E171.
+    if exists(':NERDTreeClose') == 2
+        silent! NERDTreeClose
+    endif
+    if exists(':MBECloseAll') == 2
+        silent! MBECloseAll
     endif
 endfunction
 
-fu! RestoreSess()
-    if filereadable(getcwd() . '/.session.vim')
-        execute 'so ' .getcwd() . '/.session.vim'
-        if bufexists(1)
-            for l in range(1, bufnr('$'))
-                if bufwinnr(l) == -1
-                    exec 'sbuffer ' . l
-                endif
-            endfor
-        endif
-        let g:savesession=1
-        MBEOpen
-        NERDTree
+function! s:OpenSidebars() abort
+    if exists(':MBEOpen') == 2
+        silent! MBEOpen
+    endif
+    if exists(':NERDTree') == 2
+        silent! NERDTree
     endif
 endfunction
 
-autocmd VimLeave * call SaveSess()
-autocmd VimEnter * nested call RestoreSess()
+function! SaveSess() abort
+    if !g:savesession | return | endif
+    call s:CloseSidebars()
+    execute 'mksession! ' . fnameescape(s:session_file)
+endfunction
 
-" Does not actually save the session, but sets the option for session to be
-" auto saved on exit
-command! SaveSess let g:savesession=1
-command! NoSaveSess let g:savesession=0
+function! RestoreSess() abort
+    if !filereadable(s:session_file) | return | endif
+    execute 'source ' . fnameescape(s:session_file)
+    let g:savesession = 1
+    call s:OpenSidebars()
+endfunction
+
+" A file argument, piped input, or diff mode all mean the user asked for
+" something specific -- restoring over it would discard what they asked for.
+" Global, and taking the timer id, so it can be handed to timer_start() as a
+" plain Funcref. A {-> s:Fn()} lambda does not resolve its script-local
+" reference from inside an autocmd, and fails silently in the timer.
+function! MaybeRestoreSess(...) abort
+    if argc() != 0 || exists('s:read_stdin') || &diff
+        return
+    endif
+    call RestoreSess()
+endfunction
+
+augroup vimide_session
+    autocmd!
+    autocmd StdinReadPre * let s:read_stdin = 1
+    " Deferred by a zero-delay timer so it runs after every plugin's own
+    " VimEnter handler. NERDTree's netrw hijack rearranges windows at VimEnter
+    " and, running after ours, used to silently undo the whole restore.
+    autocmd VimEnter * ++nested call timer_start(0, function('MaybeRestoreSess'))
+    autocmd VimLeave * call SaveSess()
+augroup END
+
+function! s:EnableAndSave() abort
+    let g:savesession = 1
+    call SaveSess()
+endfunction
+
+" :SaveSess turns auto-saving on and writes the session immediately.
+" :NoSaveSess stops auto-saving; delete .session.vim to stop restoring.
+command! SaveSess   call s:EnableAndSave()
+command! NoSaveSess let g:savesession = 0
 
