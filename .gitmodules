@@ -50,7 +50,3 @@
 	path = vim/bundle/ale
 	url = https://github.com/dense-analysis/ale.git
 	update = merge
-[submodule "nvim_config/pack/github/start/copilot.vim"]
-	path = nvim_config/pack/github/start/copilot.vim
-	url = https://github.com/github/copilot.vim.git
-	update = merge

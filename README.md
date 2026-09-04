@@ -53,10 +53,8 @@ Vim plugins are git submodules under `vim/bundle/`, loaded by
 | [vim-virtualenv](https://github.com/plytophogy/vim-virtualenv) | Python virtualenv switching |
 | [tlib_vim](https://github.com/tomtom/tlib_vim), [vim-addon-mw-utils](https://github.com/MarcWeber/vim-addon-mw-utils) | snipmate dependencies |
 
-Neovim additionally loads
-[copilot.vim](https://github.com/github/copilot.vim) from
-`nvim_config/pack/github/start/`. `nvim_config/init.vim` simply sources
-`~/.vimrc`; there is no Lua/LSP/treesitter config yet.
+`nvim_config/init.vim` simply sources `~/.vimrc`, so Neovim runs the same
+plugin set as Vim. There is no Lua/LSP/treesitter config yet.
 
 Updating submodules:
 
