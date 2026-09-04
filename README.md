@@ -88,16 +88,24 @@ ctags --version   # must say "Universal Ctags"
 Do **not** use the older `ctags` formula (Exuberant 5.8, unmaintained since
 2009); it conflicts with `universal-ctags` and both install a `ctags` binary.
 
-**The tmux clipboard trap.** `tmux.conf` currently pipes copy-mode yanks
-through `reattach-to-user-namespace`, so `y` and `Enter` in copy mode silently
-copy nothing unless that wrapper is installed. It has been unnecessary since
-macOS 10.12 / tmux 2.6. It is still available (`brew install
-reattach-to-user-namespace`, currently 2.9), but prefer fixing the config:
-replace both `reattach-to-user-namespace pbcopy` with plain `pbcopy` in
-`tmux.conf`. Check the current state with:
+**Clipboard.** `tmux.conf` picks a copy backend at load time via `if-shell`
+(`pbcopy`, `wl-copy`, or `xclip`) and both copy bindings use it through
+`copy-command`, so nothing extra is needed on either platform.
+`reattach-to-user-namespace` is *not* required -- it has been unnecessary
+since macOS 10.12 / tmux 2.6. Note that tmux runs these through a
+non-interactive `sh -c`, so the `pbcopy`/`pbpaste` aliases in `bash_aliases`
+are not visible to it; the backend has to be a real executable. On Ubuntu
+24.04 (Wayland by default) that means `wl-clipboard`, with `xclip` as the X11
+fallback:
 
 ```sh
-tmux list-keys -T copy-mode-vi | grep pbcopy
+sudo apt install wl-clipboard    # or xclip on an X11 session
+```
+
+Check which backend was chosen with:
+
+```sh
+tmux show-options -sv copy-command
 ```
 
 Apple's bundled Vim is built `+clipboard +terminal +textprop +popupwin` and
@@ -107,7 +115,7 @@ Apple's bundled Vim is built `+clipboard +terminal +textprop +popupwin` and
 ### Ubuntu 24.04
 
 ```sh
-sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv
+sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv wl-clipboard
 ```
 
 | Package | Why |
@@ -115,6 +123,7 @@ sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv
 | vim | install the full `vim`, not `vim-tiny`, which the base image ships |
 | universal-ctags | tagbar and tag files |
 | fontconfig | `fc-cache`, used by the installer to register the bundled fonts |
+| wl-clipboard | tmux copy-mode yanks on a Wayland session; use `xclip` on X11 |
 | python3-venv | Ubuntu ships `venv` separately; `scripts/newMLenv.sh` needs it |
 
 ### Optional, per project

@@ -178,11 +178,10 @@ augroup END
 
 nnoremap g; g;zz
 
-" Movement between Windows
-nnoremap <c-j> <c-w>j
-nnoremap <c-k> <c-w>k
-nnoremap <c-h> <c-w>h
-nnoremap <c-l> <c-w>l
+" Movement between windows is provided by vim-tmux-navigator, which maps
+" <C-h/j/k/l> to :TmuxNavigate* and crosses seamlessly into tmux panes.
+" Plugins load after this file, so plain `nnoremap <c-j> <c-w>j` here would be
+" silently overridden -- set g:tmux_navigator_no_mappings=1 to take them back.
 
 " =========== END Basic Vim Settings ===========
 "
