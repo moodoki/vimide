@@ -50,7 +50,6 @@ Vim plugins are git submodules under `vim/bundle/`, loaded by
 | [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) | Pane/split navigation |
 | [minibufexpl](https://github.com/fholgado/minibufexpl.vim) | Buffer list |
 | [rust.vim](https://github.com/rust-lang/rust.vim) | Rust ftplugin |
-| [vim-virtualenv](https://github.com/plytophogy/vim-virtualenv) | Python virtualenv switching |
 | [tlib_vim](https://github.com/tomtom/tlib_vim), [vim-addon-mw-utils](https://github.com/MarcWeber/vim-addon-mw-utils) | snipmate dependencies |
 
 `nvim_config/init.vim` simply sources `~/.vimrc`, so Neovim runs the same
@@ -70,7 +69,7 @@ Known rough edges
 -----------------
 
 - snipmate itself is not installed, only its two dependency bundles.
-- `minibufexpl` and `vim-virtualenv` are both unmaintained upstream.
+- `minibufexpl` is unmaintained upstream.
 - Session save/restore (`SaveSess`/`RestoreSess` in `vimrc`) writes
   `.session.vim` into the working directory and hard-depends on NERDTree and
   minibufexpl being loaded.
