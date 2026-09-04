@@ -251,6 +251,12 @@ nmap <leader>l <ESC>:TagbarToggle<cr>
 imap <leader>l <ESC>:TagbarToggle<cr>i
 
 " ALE settings
+" Prefix pyright/pylsp/jedils with PATH and VIRTUAL_ENV from a project-local
+" venv, found by walking up from the buffer for a directory named one of
+" g:ale_virtualenv_dir_names (.venv, env, ve, venv, virtualenv, .env).
+" Centrally-managed venvs under ~/.venvs are not found this way -- activate
+" those in the shell before launching, as the `activate` alias does.
+let g:ale_python_auto_virtualenv = v:true
 
 
 " vim-latex settings
