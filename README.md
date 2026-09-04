@@ -54,6 +54,79 @@ The dependency check reports only and installs nothing, printing the right
 a BSD `ctags` in `/usr/bin` that tagbar cannot use -- the check flags it and
 points at `universal-ctags`.
 
+Requirements
+------------
+
+`./createLinks.sh` checks all of these and tells you what is missing; it never
+installs anything itself. Nothing here is needed merely to open a file -- this
+list is what makes every feature in this repo actually work.
+
+### macOS
+
+```sh
+brew install universal-ctags neovim tmux
+```
+
+| Package | Why | Notes |
+| --- | --- | --- |
+| **universal-ctags** | tagbar (`<leader>l`), and `set tags=./tags;/` | **Required.** See the warning below |
+| neovim | `nvim` | Optional; Vim alone is fine |
+| tmux | `tmux.conf` | Optional |
+| git | submodules | Ships with the Xcode command line tools |
+| vim | the editor | Apple's `/usr/bin/vim` (9.1) is sufficient |
+
+**The ctags trap.** macOS ships a BSD `ctags` at `/usr/bin/ctags`. It is not
+Exuberant/Universal Ctags, tagbar refuses to use it, and because the binary
+*exists* nothing obviously fails -- tagbar just never works. Install
+`universal-ctags` from Homebrew; `/opt/homebrew/bin` precedes `/usr/bin` on a
+default Homebrew PATH, so it shadows Apple's automatically. Verify with:
+
+```sh
+ctags --version   # must say "Universal Ctags"
+```
+
+Do **not** use the older `ctags` formula (Exuberant 5.8, unmaintained since
+2009); it conflicts with `universal-ctags` and both install a `ctags` binary.
+
+**The tmux clipboard trap.** `tmux.conf` currently pipes copy-mode yanks
+through `reattach-to-user-namespace`, so `y` and `Enter` in copy mode silently
+copy nothing unless that wrapper is installed. It has been unnecessary since
+macOS 10.12 / tmux 2.6. It is still available (`brew install
+reattach-to-user-namespace`, currently 2.9), but prefer fixing the config:
+replace both `reattach-to-user-namespace pbcopy` with plain `pbcopy` in
+`tmux.conf`. Check the current state with:
+
+```sh
+tmux list-keys -T copy-mode-vi | grep pbcopy
+```
+
+Apple's bundled Vim is built `+clipboard +terminal +textprop +popupwin` and
+`-python3 -lua`. Nothing here needs the last two, so there is no reason to
+`brew install vim` unless you want a newer patch level.
+
+### Ubuntu 24.04
+
+```sh
+sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv
+```
+
+| Package | Why |
+| --- | --- |
+| vim | install the full `vim`, not `vim-tiny`, which the base image ships |
+| universal-ctags | tagbar and tag files |
+| fontconfig | `fc-cache`, used by the installer to register the bundled fonts |
+| python3-venv | Ubuntu ships `venv` separately; `scripts/newMLenv.sh` needs it |
+
+### Optional, per project
+
+ALE runs whichever of these it finds on `PATH`, so install them per project
+(in the venv) rather than globally:
+
+```sh
+pip install ruff mypy flake8 pylint     # linters
+npm install -g pyright                   # language server
+```
+
 Plugins
 -------
 

@@ -212,6 +212,16 @@ check_deps() {
         warn "ctags not found; tagbar will not work -- $(pkg_hint universal-ctags universal-ctags)"
     fi
 
+    # tmux.conf pipes copy-mode yanks through this wrapper, which has been
+    # unnecessary since macOS 10.12 / tmux 2.6. Only complain while the config
+    # still asks for it, so the warning disappears once tmux.conf is fixed.
+    if [ "$OS" = macos ] \
+        && grep -q 'reattach-to-user-namespace' "$REPO/tmux.conf" 2>/dev/null \
+        && ! command -v reattach-to-user-namespace >/dev/null 2>&1
+    then
+        warn "tmux.conf pipes copy-mode yanks through reattach-to-user-namespace, which is not installed; copying to the clipboard from tmux will do nothing. Replace it with plain pbcopy in tmux.conf"
+    fi
+
     if [ "$OS" = linux ] && ! command -v fc-cache >/dev/null 2>&1; then
         warn "fc-cache not found -- $(pkg_hint fontconfig fontconfig)"
     fi
