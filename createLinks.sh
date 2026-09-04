@@ -183,7 +183,8 @@ check_deps() {
         'git:git:git:yes:--version' \
         'vim:vim:vim:no:--version' \
         'nvim:neovim:neovim:no:--version' \
-        'tmux:tmux:tmux:no:-V'
+        'tmux:tmux:tmux:no:-V' \
+        'uv:uv:uv:no:--version'
     do
         tool="${entry%%:*}"; entry="${entry#*:}"
         brew="${entry%%:*}"; entry="${entry#*:}"
@@ -224,6 +225,14 @@ check_deps() {
 
     if [ "$OS" = linux ] && ! command -v fc-cache >/dev/null 2>&1; then
         warn "fc-cache not found -- $(pkg_hint fontconfig fontconfig)"
+    fi
+
+    if ! command -v uv >/dev/null 2>&1; then
+        if [ "$OS" = macos ]; then
+            warn "uv not found (needed by newMLenv) -- brew install uv"
+        else
+            warn "uv not found (needed by newMLenv) -- curl -LsSf https://astral.sh/uv/install.sh | sh"
+        fi
     fi
 
     # scripts/newMLenv.sh needs the venv module, which Ubuntu ships separately.

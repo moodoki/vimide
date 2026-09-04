@@ -64,7 +64,7 @@ list is what makes every feature in this repo actually work.
 ### macOS
 
 ```sh
-brew install universal-ctags neovim tmux
+brew install universal-ctags neovim tmux uv
 ```
 
 | Package | Why | Notes |
@@ -72,6 +72,7 @@ brew install universal-ctags neovim tmux
 | **universal-ctags** | tagbar (`<leader>l`), and `set tags=./tags;/` | **Required.** See the warning below |
 | neovim | `nvim` | Optional; Vim alone is fine |
 | tmux | `tmux.conf` | Optional |
+| uv | `scripts/newMLenv.sh` | Optional; required by that script |
 | git | submodules | Ships with the Xcode command line tools |
 | vim | the editor | Apple's `/usr/bin/vim` (9.1) is sufficient |
 
@@ -116,6 +117,7 @@ Apple's bundled Vim is built `+clipboard +terminal +textprop +popupwin` and
 
 ```sh
 sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv wl-clipboard
+curl -LsSf https://astral.sh/uv/install.sh | sh   # uv is not in the 24.04 archive
 ```
 
 | Package | Why |
@@ -124,6 +126,7 @@ sudo apt install git vim neovim tmux universal-ctags fontconfig python3-venv wl-
 | universal-ctags | tagbar and tag files |
 | fontconfig | `fc-cache`, used by the installer to register the bundled fonts |
 | wl-clipboard | tmux copy-mode yanks on a Wayland session; use `xclip` on X11 |
+| python3-venv | Python virtualenvs |
 | python3-venv | Ubuntu ships `venv` separately; `scripts/newMLenv.sh` needs it |
 
 ### Optional, per project
@@ -177,5 +180,6 @@ Known rough edges
 - Session save/restore (`SaveSess`/`RestoreSess` in `vimrc`) writes
   `.session.vim` into the working directory and hard-depends on NERDTree and
   minibufexpl being loaded.
-- `scripts/newMLenv.sh` pins nothing and still references `tensorflow-addons`
-  (EOL) and the removed `jupyter labextension install` workflow.
+- `scripts/newMLenv.sh` installs unpinned latest versions by design; pin per
+  project with a `requirements.txt` or `pyproject.toml` if you need
+  reproducibility.
