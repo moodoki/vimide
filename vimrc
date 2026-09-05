@@ -51,6 +51,16 @@ set matchtime=3
 " sequences while halving both of those waits.
 set timeoutlen=500
 
+" Key codes get their own, much shorter timeout. Without this Vim leaves
+" 'ttimeout' off and 'ttimeoutlen' at -1, so the value above also decides how
+" long a bare <Esc> waits to prove it is not the start of an escape sequence
+" (<Esc>[A from an arrow key, say) -- which is what makes <Esc> feel sluggish.
+" Neovim already defaults to these; setting them keeps the two consistent.
+" Pairs with `escape-time 10` in tmux.conf, which fixes the same latency one
+" layer down.
+set ttimeout
+set ttimeoutlen=50
+
 "Changing Leader Key
 let mapleader = ","
 
