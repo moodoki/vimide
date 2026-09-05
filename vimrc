@@ -45,6 +45,22 @@ set shell=bash
 set lazyredraw
 set matchtime=3
 
+" How long to wait for a multi-key mapping to complete. Affects the leader
+" sequences, the jjj/kkk escapes, and how quickly a bare "," falls through to
+" its built-in find-repeat. 500ms is still comfortable for deliberate
+" sequences while halving both of those waits.
+set timeoutlen=500
+
+" Key codes get their own, much shorter timeout. Without this Vim leaves
+" 'ttimeout' off and 'ttimeoutlen' at -1, so the value above also decides how
+" long a bare <Esc> waits to prove it is not the start of an escape sequence
+" (<Esc>[A from an arrow key, say) -- which is what makes <Esc> feel sluggish.
+" Neovim already defaults to these; setting them keeps the two consistent.
+" Pairs with `escape-time 10` in tmux.conf, which fixes the same latency one
+" layer down.
+set ttimeout
+set ttimeoutlen=50
+
 "Changing Leader Key
 let mapleader = ","
 
@@ -61,13 +77,15 @@ if !has('nvim')
 endif
 
 
-" Yank to buffer file for copy and pasting in different sessions
+" Yank to a file, for copy/paste between vim sessions. Kept deliberately even
+" though 'clipboard' is set: on a machine with no system clipboard (a plain
+" ssh session, a headless box) this is the only thing that works.
 vnoremap <C-y> :w! ~/.vimbuffer<CR>
 nnoremap <C-y> :.w! ~/.vimbuffer<CR>
 noremap <C-p> :r ~/.vimbuffer<CR>
 
 " Make Vim able to edit corntab fiels again.
-set backupskip=/tmp/*,/private/tmp/*"
+set backupskip=/tmp/*,/private/tmp/*
 
 " Enable Mouse
 set mouse=a
@@ -78,13 +96,15 @@ nnoremap / /\v
 vnoremap / /\v
 set ignorecase
 set smartcase
-set gdefault
+" No 'gdefault': it inverts the meaning of the /g flag, so every :s command
+" from documentation, a colleague or a plugin does the opposite of what it says.
 set incsearch
 set showmatch
 set hlsearch
 nnoremap <leader><space> :noh<cr>
-nnoremap <tab> %
-vnoremap <tab> %
+" <Tab> is not mapped to %: in a terminal <Tab> and <C-i> are the same keycode,
+" so mapping it silently disables <C-i> (jump forward in the jumplist), leaving
+" <C-o> working and no way back. % is already one keystroke.
 
 
 " Make Vim to handle long lines nicely.
@@ -92,7 +112,11 @@ set wrap
 set textwidth=99
 set formatoptions=qrn1
 silent! set colorcolumn=79,99
-colorschem zaibatsu
+" zaibatsu only ships with Vim 8.2 and later, so vim/colors/ carries a copy for
+" older boxes (Ubuntu 20.04 is on 8.1). ~/.vim precedes $VIMRUNTIME on the
+" runtimepath, so that copy is the one used everywhere -- same colours on every
+" machine. silent! so a missing scheme leaves the default rather than erroring.
+silent! colorscheme zaibatsu
 highlight ColorColumn ctermbg=darkgrey guibg=darkgrey
 set linebreak
 
@@ -112,8 +136,13 @@ set listchars=tab:▸\ ,eol:¬
 "inoremap <right> <nop>
 nnoremap j gj
 nnoremap k gk
-inoremap jj <esc>j
-inoremap kk <esc>k
+
+" Right-hand-only escape from insert mode. Three repeats rather than two:
+" "jj" and "kk" both occur in real words (kk in 73 of /usr/share/dict/words,
+" "bookkeeper" among them), while "jjj" and "kkk" occur in none. Plain <Esc>,
+" with no trailing motion -- the old mappings also moved the cursor a line.
+inoremap jjj <Esc>
+inoremap kkk <Esc>
 
 " Get Rid of stupid Goddamned help keys
 inoremap <F1> <ESC>
@@ -178,11 +207,10 @@ augroup END
 
 nnoremap g; g;zz
 
-" Movement between Windows
-nnoremap <c-j> <c-w>j
-nnoremap <c-k> <c-w>k
-nnoremap <c-h> <c-w>h
-nnoremap <c-l> <c-w>l
+" Movement between windows is provided by vim-tmux-navigator, which maps
+" <C-h/j/k/l> to :TmuxNavigate* and crosses seamlessly into tmux panes.
+" Plugins load after this file, so plain `nnoremap <c-j> <c-w>j` here would be
+" silently overridden -- set g:tmux_navigator_no_mappings=1 to take them back.
 
 " =========== END Basic Vim Settings ===========
 "
@@ -237,9 +265,6 @@ endif
 
 " ========== Plugin Settings =========="
 "
-" Sparkup
-let g:sparkupNextMapping='<c-t>'
-
 " Mapping to NERDTree
 nnoremap <C-n> :NERDTreeToggle<cr>
 
@@ -249,27 +274,22 @@ let g:miniBufExplMapWindowNavArrows = 1
 let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1
 
-" Rope Plugin settings
-imap <leader>j <ESC>:RopeGotoDefinition<cr>
-nmap <leader>j <ESC>:RopeGotoDefinition<cr>
-
 " Tagbar key bindings."
 nmap <leader>l <ESC>:TagbarToggle<cr>
 imap <leader>l <ESC>:TagbarToggle<cr>i
 
-" Change which file opens after executing :Rails command
-let g:rails_default_file='config/database.yml'
-
-
 " ALE settings
+" Prefix pyright/pylsp/jedils with PATH and VIRTUAL_ENV from a project-local
+" venv, found by walking up from the buffer for a directory named one of
+" g:ale_virtualenv_dir_names (.venv, env, ve, venv, virtualenv, .env).
+" Centrally-managed venvs under ~/.venvs are not found this way -- activate
+" those in the shell before launching, as the `activate` alias does.
+let g:ale_python_auto_virtualenv = v:true
 
 
 " vim-latex settings
 let g:tex_flavor='latex'
 
-
-" snipmate
-let g:snipMate = { 'snippet_version' : 1 }
 
 " =========== END Plugin Settings =========="
 "
@@ -285,39 +305,88 @@ endif
 " Auto load ctags if present
 set tags=./tags;/
 
-" Session saving and autoloading
+" ---- Session save / restore ----------------------------------------------
+" Opt-in per directory: a directory only gets a session once you run :SaveSess
+" there. After that, starting vim in it with no file arguments restores the
+" session, and quitting re-saves it.
 
-fu! SaveSess()
-    NERDTreeClose
-    MBECloseAll
-    if g:savesession
-        execute 'mksession! ' . getcwd() . '/.session.vim'
+let g:savesession = get(g:, 'savesession', 0)
+
+" The default includes 'options', which bakes every option and mapping into
+" the session file -- the usual reason a restored session behaves unlike a
+" fresh vim. 'terminal' is dropped too; restoring terminal buffers is rarely
+" what you want.
+set sessionoptions=buffers,curdir,folds,help,tabpages,winsize
+
+" Fixed at startup so VimLeave still writes to the directory vim was launched
+" in, even if the session or an autocmd changed the working directory.
+let s:session_file = getcwd() . '/.session.vim'
+
+" Sidebars are excluded from the session and reopened afterwards, so the
+" session stores real windows only. Guarded: the config still loads if the
+" plugins are absent.
+function! s:CloseSidebars() abort
+    " Note: `silent!` swallows a following bar, so these cannot be written as
+    " one-line `if ... | silent! Cmd | endif` -- that raises E171.
+    if exists(':NERDTreeClose') == 2
+        silent! NERDTreeClose
+    endif
+    if exists(':MBECloseAll') == 2
+        silent! MBECloseAll
     endif
 endfunction
 
-fu! RestoreSess()
-    if filereadable(getcwd() . '/.session.vim')
-        execute 'so ' .getcwd() . '/.session.vim'
-        if bufexists(1)
-            for l in range(1, bufnr('$'))
-                if bufwinnr(l) == -1
-                    exec 'sbuffer ' . l
-                endif
-            endfor
-        endif
-        let g:savesession=1
-        MBEOpen
-        NERDTree
+function! s:OpenSidebars() abort
+    if exists(':MBEOpen') == 2
+        silent! MBEOpen
+    endif
+    if exists(':NERDTree') == 2
+        silent! NERDTree
     endif
 endfunction
 
-autocmd VimLeave * call SaveSess()
-autocmd VimEnter * nested call RestoreSess()
+function! SaveSess() abort
+    if !g:savesession | return | endif
+    call s:CloseSidebars()
+    execute 'mksession! ' . fnameescape(s:session_file)
+endfunction
 
-" Does not actually save the session, but sets the option for session to be
-" auto saved on exit
-command! SaveSess let g:savesession=1
-command! NoSaveSess let g:savesession=0
+function! RestoreSess() abort
+    if !filereadable(s:session_file) | return | endif
+    execute 'source ' . fnameescape(s:session_file)
+    let g:savesession = 1
+    call s:OpenSidebars()
+endfunction
 
-" SnipMate deprecation??
-let g:snipMate = {'snippet_version': 1}
+" A file argument, piped input, or diff mode all mean the user asked for
+" something specific -- restoring over it would discard what they asked for.
+" Global, and taking the timer id, so it can be handed to timer_start() as a
+" plain Funcref. A {-> s:Fn()} lambda does not resolve its script-local
+" reference from inside an autocmd, and fails silently in the timer.
+function! MaybeRestoreSess(...) abort
+    if argc() != 0 || exists('s:read_stdin') || &diff
+        return
+    endif
+    call RestoreSess()
+endfunction
+
+augroup vimide_session
+    autocmd!
+    autocmd StdinReadPre * let s:read_stdin = 1
+    " Deferred by a zero-delay timer so it runs after every plugin's own
+    " VimEnter handler. NERDTree's netrw hijack rearranges windows at VimEnter
+    " and, running after ours, used to silently undo the whole restore.
+    autocmd VimEnter * ++nested call timer_start(0, function('MaybeRestoreSess'))
+    autocmd VimLeave * call SaveSess()
+augroup END
+
+function! s:EnableAndSave() abort
+    let g:savesession = 1
+    call SaveSess()
+endfunction
+
+" :SaveSess turns auto-saving on and writes the session immediately.
+" :NoSaveSess stops auto-saving; delete .session.vim to stop restoring.
+command! SaveSess   call s:EnableAndSave()
+command! NoSaveSess let g:savesession = 0
+
