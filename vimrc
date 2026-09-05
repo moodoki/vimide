@@ -45,6 +45,12 @@ set shell=bash
 set lazyredraw
 set matchtime=3
 
+" How long to wait for a multi-key mapping to complete. Affects the leader
+" sequences, the jjj/kkk escapes, and how quickly a bare "," falls through to
+" its built-in find-repeat. 500ms is still comfortable for deliberate
+" sequences while halving both of those waits.
+set timeoutlen=500
+
 "Changing Leader Key
 let mapleader = ","
 
