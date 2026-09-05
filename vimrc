@@ -117,6 +117,13 @@ set listchars=tab:▸\ ,eol:¬
 nnoremap j gj
 nnoremap k gk
 
+" Right-hand-only escape from insert mode. Three repeats rather than two:
+" "jj" and "kk" both occur in real words (kk in 73 of /usr/share/dict/words,
+" "bookkeeper" among them), while "jjj" and "kkk" occur in none. Plain <Esc>,
+" with no trailing motion -- the old mappings also moved the cursor a line.
+inoremap jjj <Esc>
+inoremap kkk <Esc>
+
 " Get Rid of stupid Goddamned help keys
 inoremap <F1> <ESC>
 nnoremap <F1> <ESC>
