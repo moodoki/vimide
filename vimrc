@@ -61,7 +61,9 @@ if !has('nvim')
 endif
 
 
-" Yank to buffer file for copy and pasting in different sessions
+" Yank to a file, for copy/paste between vim sessions. Kept deliberately even
+" though 'clipboard' is set: on a machine with no system clipboard (a plain
+" ssh session, a headless box) this is the only thing that works.
 vnoremap <C-y> :w! ~/.vimbuffer<CR>
 nnoremap <C-y> :.w! ~/.vimbuffer<CR>
 noremap <C-p> :r ~/.vimbuffer<CR>
@@ -114,7 +116,6 @@ set listchars=tab:▸\ ,eol:¬
 "inoremap <right> <nop>
 nnoremap j gj
 nnoremap k gk
-inoremap jj <esc>j
 inoremap kk <esc>k
 
 " Get Rid of stupid Goddamned help keys
