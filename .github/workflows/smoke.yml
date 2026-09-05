@@ -37,6 +37,11 @@ jobs:
       TERM: xterm
 
     steps:
+      # ncurses-term is deliberately NOT installed: it is what supplies the
+      # tmux-256color entry on Ubuntu, and with it present the carried terminfo
+      # fallback never fires and goes untested. A bare container without it is
+      # also the realistic minimal-server case.
+      #
       # git has to exist before actions/checkout, or it silently falls back to
       # a tarball download and the submodules never arrive.
       - name: Prerequisites
@@ -44,7 +49,7 @@ jobs:
           set -eux
           apt-get update
           apt-get install -y --no-install-recommends \
-            ca-certificates git vim neovim tmux ncurses-bin ncurses-term xclip
+            ca-certificates git vim neovim tmux ncurses-bin xclip
           # Not packaged identically across releases; the dep check reports it.
           apt-get install -y --no-install-recommends universal-ctags || true
 
@@ -88,8 +93,12 @@ jobs:
             echo "FAIL: tmux-256color still missing after install" >&2
             exit 1
           fi
-          { echo "- terminfo: tmux-256color resolves, $(tput -T tmux-256color colors) colors"
-            echo "  (repo copy compiled: $([ -e "$HOME/.terminfo" ] && echo yes || echo 'not needed'))"
+          if [ -e "$HOME/.terminfo" ]; then
+            src='compiled from the repo copy'
+          else
+            src='already supplied by the system'
+          fi
+          { echo "- terminfo: tmux-256color resolves, $(tput -T tmux-256color colors) colors ($src)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: vim starts
