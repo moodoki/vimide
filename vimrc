@@ -116,7 +116,6 @@ set listchars=tab:▸\ ,eol:¬
 "inoremap <right> <nop>
 nnoremap j gj
 nnoremap k gk
-inoremap kk <esc>k
 
 " Get Rid of stupid Goddamned help keys
 inoremap <F1> <ESC>
