@@ -29,6 +29,9 @@ jobs:
             strict: true
           - image: ubuntu:20.04
             strict: false
+    defaults:
+      run:
+        shell: bash
     env:
       DEBIAN_FRONTEND: noninteractive
       TERM: xterm
@@ -45,6 +48,17 @@ jobs:
           # Not packaged identically across releases; the dep check reports it.
           apt-get install -y --no-install-recommends universal-ctags || true
 
+          # The checkout is owned by a different uid than the container root,
+          # so any git command in the repo trips the dubious-ownership guard.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          # neovim registers itself as the `vim` alternative and wins, so a
+          # bare `vim` is actually nvim and real Vim never gets tested.
+          if [ -x /usr/bin/vim.basic ]; then
+            update-alternatives --set vim /usr/bin/vim.basic || true
+          fi
+          echo "VIM_BIN=$([ -x /usr/bin/vim.basic ] && echo /usr/bin/vim.basic || command -v vim)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -57,7 +71,7 @@ jobs:
           {
             echo "## ${{ matrix.image }}"
             echo '```'
-            echo "vim    $(vim --version  | head -1)"
+            echo "vim    $("$VIM_BIN" --version | head -1)  [$VIM_BIN]"
             echo "nvim   $(nvim --version | head -1)"
             echo "tmux   $(tmux -V)"
             echo "bash   $BASH_VERSION"
@@ -82,7 +96,9 @@ jobs:
         run: |
           set -eu
           printf 'int main(void){return 0;}\n' > /tmp/t.c
-          vim --not-a-term -c 'redir! > /tmp/vim.msg' -c 'silent messages' \
+          # guard against nvim masquerading as vim again
+          "$VIM_BIN" --version | head -1 | grep -q '^VIM - Vi IMproved'
+          "$VIM_BIN" --not-a-term -c 'redir! > /tmp/vim.msg' -c 'silent messages' \
               -c 'redir END' -c 'qa!' /tmp/t.c < /dev/null > /dev/null
           echo "--- :messages ---"; cat /tmp/vim.msg
           if grep -qE '^E[0-9]+:' /tmp/vim.msg; then
