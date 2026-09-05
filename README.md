@@ -129,6 +129,23 @@ curl -LsSf https://astral.sh/uv/install.sh | sh   # uv is not in the 24.04 archi
 | python3-venv | Python virtualenvs |
 | python3-venv | Ubuntu ships `venv` separately; `scripts/newMLenv.sh` needs it |
 
+### Older Ubuntu (22.04, 20.04)
+
+Two things the installer carries so old boxes work without extra packages:
+
+- **terminfo.** `tmux.conf` sets `default-terminal "tmux-256color"`. If that
+  entry is missing tmux refuses to start at all, so `res/tmux-256color.terminfo`
+  is compiled into `~/.terminfo` (per-user, no root) only when `infocmp` cannot
+  already find it. On anything current the step reports `ok` and does nothing.
+- **Colourscheme.** `zaibatsu` only ships with Vim 8.2+, and 20.04 is on 8.1,
+  so `vim/colors/` carries a copy. `~/.vim` precedes `$VIMRUNTIME`, so that copy
+  is what loads everywhere -- identical colours on every machine.
+
+Still outstanding on **20.04** specifically (tmux 3.0a):
+`set -sa terminal-features` and `set -s copy-command` both need tmux 3.2+, so
+copy-mode yanks fall back to the tmux buffer instead of the system clipboard,
+and truecolor is not advertised. 22.04 ships tmux 3.2a and is unaffected.
+
 ### Optional, per project
 
 ALE runs whichever of these it finds on `PATH`, so install them per project

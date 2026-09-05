@@ -112,7 +112,11 @@ set wrap
 set textwidth=99
 set formatoptions=qrn1
 silent! set colorcolumn=79,99
-colorschem zaibatsu
+" zaibatsu only ships with Vim 8.2 and later, so vim/colors/ carries a copy for
+" older boxes (Ubuntu 20.04 is on 8.1). ~/.vim precedes $VIMRUNTIME on the
+" runtimepath, so that copy is the one used everywhere -- same colours on every
+" machine. silent! so a missing scheme leaves the default rather than erroring.
+silent! colorscheme zaibatsu
 highlight ColorColumn ctermbg=darkgrey guibg=darkgrey
 set linebreak
 

@@ -38,6 +38,7 @@ DRY_RUN=0
 DO_SUBMODULES=1
 DO_FONTS=1
 DO_DEPS=1
+DO_TERMINFO=1
 
 n_ok=0        # already correct
 n_linked=0    # created or repaired
@@ -53,6 +54,7 @@ fi
 
 ok()      { printf '%s  ok%s        %s\n'   "$c_ok"   "$c_off" "$1"; n_ok=$((n_ok + 1)); }
 linked()  { printf '%s  linked%s    %s\n'   "$c_new"  "$c_off" "$1"; n_linked=$((n_linked + 1)); }
+created() { printf '%s  created%s   %s\n'   "$c_new"  "$c_off" "$1"; n_linked=$((n_linked + 1)); }
 note()    { printf '  %s\n' "$1"; }
 warn()    { printf '%s  warning%s   %s\n'   "$c_warn" "$c_off" "$1" >&2; n_warn=$((n_warn + 1)); }
 section() { printf '\n%s\n' "$1"; }
@@ -163,6 +165,38 @@ install_fonts() {
     fi
 }
 
+# --------------------------------------------------------------- terminfo ---
+# tmux.conf sets default-terminal "tmux-256color". If that terminfo entry is
+# absent, tmux refuses to start at all ("missing or unsuitable terminal") --
+# not a degraded mode, a hard failure. ncurses has shipped the entry since 6.x,
+# so on anything current this does nothing; older boxes (Ubuntu 20.04 and
+# before, some minimal images) may need it compiled in.
+#
+# res/tmux-256color.terminfo is a plain `infocmp -x` dump, compiled per-user
+# into ~/.terminfo, so no root is needed and no system file is touched.
+install_terminfo() {
+    local src="$REPO/res/tmux-256color.terminfo"
+
+    if infocmp tmux-256color >/dev/null 2>&1; then
+        ok "terminfo tmux-256color (already present)"
+        return 0
+    fi
+
+    if [ ! -f "$src" ]; then
+        warn "tmux-256color terminfo missing, and $src is not in the repo"
+        return 0
+    fi
+
+    if ! command -v tic >/dev/null 2>&1; then
+        warn "tmux-256color terminfo missing and tic not found -- $(pkg_hint ncurses ncurses-bin)"
+        return 0
+    fi
+
+    ensure_dir "$HOME/.terminfo"
+    act tic -x -o "$HOME/.terminfo" "$src"
+    created "terminfo tmux-256color -> ~/.terminfo"
+}
+
 # ------------------------------------------------------------------- deps ---
 # Report only. Installing packages is the user's call, not the script's.
 pkg_hint() {
@@ -254,6 +288,7 @@ while [ $# -gt 0 ]; do
         --no-submodules) DO_SUBMODULES=0 ;;
         --no-fonts)     DO_FONTS=0 ;;
         --no-deps)      DO_DEPS=0 ;;
+        --no-terminfo)  DO_TERMINFO=0 ;;
         -h|--help)      usage ;;
         *) printf 'unknown option: %s (try --help)\n' "$1" >&2; exit 2 ;;
     esac
@@ -312,6 +347,11 @@ esac
 if [ "$DO_FONTS" -eq 1 ]; then
     section 'Fonts'
     install_fonts
+fi
+
+if [ "$DO_TERMINFO" -eq 1 ]; then
+    section 'Terminfo'
+    install_terminfo
 fi
 
 section 'Summary'
