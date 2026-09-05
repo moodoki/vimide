@@ -1,0 +1,141 @@
+name: smoke
+
+# Does a clean install work, and does everything still start?
+#
+# The bar differs per release. On 22.04 and 24.04 a startup error fails the
+# build. On 20.04 it only has to start -- that release is old enough that
+# partial breakage is accepted, so errors there are reported, not fatal.
+#
+# All three run as containers: GitHub retired the ubuntu-20.04 hosted runner
+# in 2025, and containers keep the three jobs identical anyway.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  install:
+    name: ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: ubuntu:24.04
+            strict: true
+          - image: ubuntu:22.04
+            strict: true
+          - image: ubuntu:20.04
+            strict: false
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      TERM: xterm
+
+    steps:
+      # git has to exist before actions/checkout, or it silently falls back to
+      # a tarball download and the submodules never arrive.
+      - name: Prerequisites
+        run: |
+          set -eux
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates git vim neovim tmux ncurses-bin ncurses-term xclip
+          # Not packaged identically across releases; the dep check reports it.
+          apt-get install -y --no-install-recommends universal-ctags || true
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install
+        run: ./createLinks.sh --no-fonts
+
+      - name: Versions
+        run: |
+          {
+            echo "## ${{ matrix.image }}"
+            echo '```'
+            echo "vim    $(vim --version  | head -1)"
+            echo "nvim   $(nvim --version | head -1)"
+            echo "tmux   $(tmux -V)"
+            echo "bash   $BASH_VERSION"
+            echo "glibc  $(ldd --version | head -1)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: terminfo
+        run: |
+          set -eu
+          if infocmp tmux-256color >/dev/null 2>&1; then
+            echo "tmux-256color resolves: $(tput -T tmux-256color colors) colors"
+          else
+            echo "FAIL: tmux-256color still missing after install" >&2
+            exit 1
+          fi
+          { echo "- terminfo: tmux-256color resolves, $(tput -T tmux-256color colors) colors"
+            echo "  (repo copy compiled: $([ -e "$HOME/.terminfo" ] && echo yes || echo 'not needed'))"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: vim starts
+        run: |
+          set -eu
+          printf 'int main(void){return 0;}\n' > /tmp/t.c
+          vim --not-a-term -c 'redir! > /tmp/vim.msg' -c 'silent messages' \
+              -c 'redir END' -c 'qa!' /tmp/t.c < /dev/null > /dev/null
+          echo "--- :messages ---"; cat /tmp/vim.msg
+          if grep -qE '^E[0-9]+:' /tmp/vim.msg; then
+            echo "- vim: startup errors" >> "$GITHUB_STEP_SUMMARY"
+            grep -E '^E[0-9]+:' /tmp/vim.msg | sed 's/^/  - `/;s/$/`/' >> "$GITHUB_STEP_SUMMARY"
+            if [ "${{ matrix.strict }}" = "true" ]; then exit 1; fi
+          else
+            echo "- vim: starts clean" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: nvim starts
+        run: |
+          set -eu
+          nvim --headless -c 'qa!' /tmp/t.c < /dev/null 2> /tmp/nvim.msg
+          echo "--- stderr ---"; cat /tmp/nvim.msg
+          if grep -qE 'E[0-9]+:' /tmp/nvim.msg; then
+            echo "- nvim: startup errors" >> "$GITHUB_STEP_SUMMARY"
+            grep -oE 'E[0-9]+:[^"]*' /tmp/nvim.msg | sed 's/^/  - `/;s/$/`/' >> "$GITHUB_STEP_SUMMARY"
+            if [ "${{ matrix.strict }}" = "true" ]; then exit 1; fi
+          else
+            echo "- nvim: starts clean" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # The interesting one. An unknown *option* is skipped and the config
+      # continues; an unknown *command* aborts the rest of it. This reports
+      # which settings actually survived, which is how we find out how much of
+      # tmux.conf a given tmux version applies.
+      - name: tmux starts, and what survived
+        run: |
+          set -eu
+          tmux -f "$PWD/tmux.conf" new-session -d -s ci
+          tmux has-session -t ci
+          hl=$(tmux show-options  -gv history-limit  2>/dev/null || echo '(unset)')
+          mk=$(tmux show-window-options -gv mode-keys 2>/dev/null || echo '(unset)')
+          cc=$(tmux show-options  -sv copy-command   2>/dev/null || echo '(unsupported)')
+          tf=$(tmux show-options  -sv terminal-features 2>/dev/null || echo '(unsupported)')
+          nav=$(tmux list-keys -T root 2>/dev/null | grep -c "select-pane -L" || true)
+          {
+            echo "- tmux: session created"
+            echo "  - history-limit (line 79)      \`$hl\`  (10000 = config read to the end)"
+            echo "  - mode-keys (line 63)          \`$mk\`"
+            echo "  - copy-command (3.2+)          \`$cc\`"
+            echo "  - terminal-features (3.2+)     \`${tf:-(empty)}\`"
+            echo "  - pane-nav bindings bound      \`$nav\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          tmux kill-server 2>/dev/null || true
+
+      - name: Re-run install (idempotence)
+        run: |
+          set -eu
+          ./createLinks.sh --no-fonts | tee /tmp/second.log
+          grep -qE 'already correct' /tmp/second.log
+          if grep -qE '^\s+linked ' /tmp/second.log; then
+            echo "FAIL: second run still created links" >&2; exit 1
+          fi
+          echo "- installer: idempotent on re-run" >> "$GITHUB_STEP_SUMMARY"
