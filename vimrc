@@ -332,6 +332,36 @@ imap <leader>l <ESC>:TagbarToggle<cr>i
 let g:ale_python_auto_virtualenv = v:true
 
 
+" vim-vsnip settings
+" Snippets of my own live in the repo: ~/.vim is this repo's vim/ directory, so
+" pointing vsnip at ~/.vim/vsnip means they are versioned with everything else
+" rather than stranded in ~/.vsnip on one machine. :VsnipOpen edits the file
+" for the current filetype, creating it on first use.
+let g:vsnip_snippet_dir = expand('~/.vim/vsnip')
+
+" The bundled library, vim/bundle/friendly-snippets, needs no configuration:
+" vsnip scans the runtimepath for a package.json declaring contributes.snippets,
+" and pathogen has already put it there.
+
+" <Tab> expands the snippet under the cursor, or jumps to the next placeholder,
+" and falls through to a real Tab when there is neither. Insert and select mode
+" only -- normal-mode <Tab> is deliberately left alone, because in a terminal it
+" is the same keycode as <C-i> and mapping it would cost the jumplist.
+" imap/smap rather than inoremap/snoremap: the right-hand side is a <Plug> map,
+" which a non-recursive mapping would not resolve.
+"
+" Guarded on the plugin actually being there. pathogen has already run by this
+" point, so the bundle is on the runtimepath if it was cloned at all -- and a
+" checkout without submodules keeps a working <Tab> instead of raising E117 on
+" every press, which is a bad way to find out.
+if !empty(globpath(&runtimepath, 'plugin/vsnip.vim'))
+    imap <expr> <Tab>   vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr> <Tab>   vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+    smap <expr> <S-Tab> vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+endif
+
+
 " vim-latex settings
 let g:tex_flavor='latex'
 
