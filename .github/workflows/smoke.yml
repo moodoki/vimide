@@ -145,15 +145,51 @@ jobs:
           cc=$(tmux show-options  -sv copy-command   2>/dev/null || echo '(unsupported)')
           tf=$(tmux show-options  -sv terminal-features 2>/dev/null || echo '(unsupported)')
           nav=$(tmux list-keys -T root 2>/dev/null | grep -c "select-pane -L" || true)
+          # The agent section is the last thing in the file, so this is the
+          # real "config read to the end" marker now.
+          ac=$(tmux show-options -gv @agent_cmd 2>/dev/null || echo '(unset)')
+          ag=$(tmux list-keys -T prefix 2>/dev/null | grep -c "agent-pane" || true)
           {
             echo "- tmux: session created"
-            echo "  - history-limit (line 79)      \`$hl\`  (10000 = config read to the end)"
+            echo "  - history-limit (line 79)      \`$hl\`"
             echo "  - mode-keys (line 63)          \`$mk\`"
             echo "  - copy-command (3.2+)          \`$cc\`"
             echo "  - terminal-features (3.2+)     \`${tf:-(empty)}\`"
             echo "  - pane-nav bindings bound      \`$nav\`"
+            echo "  - @agent_cmd (last section)    \`$ac\`  (set = config read to the end)"
+            echo "  - agent bindings bound         \`$ag\`"
           } | tee -a "$GITHUB_STEP_SUMMARY"
           tmux kill-server 2>/dev/null || true
+
+      # Does handing context to the agent pane actually work on this tmux?
+      # The stand-in agent is `cat`, so whatever the pane is sent lands in a
+      # file we can grep -- the same path vim and the prefix bindings use.
+      - name: agent-pane round trip
+        run: |
+          set -eu
+          out="$HOME/agent.out"
+          rm -f "$out"
+          tmux -f "$PWD/tmux.conf" new-session -d -s ag -x 200 -y 50
+          tmux set-option -g @agent_cmd "cat > $out"
+          p=$(tmux list-panes -t ag -F '#{pane_id}')
+
+          # run-shell is what the prefix bindings use, and it sets TMUX but
+          # not TMUX_PANE -- hence SELF_PANE, exactly as tmux.conf passes it.
+          tmux run-shell -t "$p" "SELF_PANE=$p $HOME/bin/agent-pane open"
+          sleep 2
+          panes=$(tmux list-panes -t ag | wc -l)
+          tmux run-shell -t "$p" \
+            "printf 'ci probe\n' | SELF_PANE=$p $HOME/bin/agent-pane send -F -L text -H 'from ci:' -"
+          sleep 2
+          tmux kill-session -t ag 2>/dev/null || true
+
+          echo "--- what the agent pane received ---"; cat "$out" 2>/dev/null || true
+          if [ "$panes" -eq 2 ] && grep -q 'ci probe' "$out" 2>/dev/null; then
+            echo "- agent-pane: pane opened and received the paste" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- agent-pane: FAILED (panes=$panes)" | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "${{ matrix.strict }}" = "true" ]; then exit 1; fi
+          fi
 
       - name: Re-run install (idempotence)
         run: |

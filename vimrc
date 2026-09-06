@@ -152,8 +152,53 @@ vnoremap <F1> <ESC>
 " Map : to ; also in command mode.
 nnoremap ; :
 
-" Set vim to save the file on focus out.
-au FocusLost * :wa
+" ---- Staying in sync with an agent editing the same files ----------------
+" Two halves of one problem: when you leave the pane, whatever you were typing
+" has to be on disk for the agent to see it; when you come back, whatever the
+" agent wrote has to be in the buffer.
+"
+" Both directions need `focus-events on` in tmux.conf to fire on a pane
+" switch. See vim/plugin/agent.vim for the other half -- sending context the
+" other way -- and :help W11 for what happens when you and the agent have both
+" changed the same file (vim asks; it never silently discards your version).
+
+" None of the focus half works until vim actually asks the terminal to report
+" focus, and it only asks when it believes the terminal supports it -- which it
+" does not believe of term=tmux-256color, where t_fe and t_fd come out empty.
+" tmux does support it (DECSET 1004, with `focus-events on`), so say so by
+" hand. Without this, FocusLost/FocusGained simply never fire under tmux.
+" Neovim requests focus reporting itself and needs none of this.
+if !has('nvim') && !has('gui_running') && &term =~# '^\%(tmux\|screen\)'
+    let &t_fe = "\<Esc>[?1004h"
+    let &t_fd = "\<Esc>[?1004l"
+    execute "set <FocusGained>=\<Esc>[I"
+    execute "set <FocusLost>=\<Esc>[O"
+endif
+
+" Save on the way out. `silent!` because :wall raises E141 on an unnamed
+" buffer, and a scratch buffer is not a reason to interrupt a pane switch.
+au FocusLost * silent! wall
+
+" Re-read on the way back in. 'autoread' alone only acts when vim happens to
+" touch the file, so :checktime is what actually makes it prompt.
+set autoread
+
+" CursorHold also fires on this timer, which is what catches a write that
+" lands while you sit in the same pane reading. The default 4s is too slow to
+" feel like the file is live; the cost is a swapfile write at the same rate.
+set updatetime=1000
+
+augroup vimide_autoread
+    au!
+    " getcmdwintype() guards the command-line window, where almost every
+    " command, :checktime included, raises E11.
+    au FocusGained,BufEnter,CursorHold,CursorHoldI *
+        \ if getcmdwintype() ==# '' | silent! checktime | endif
+    au FileChangedShellPost *
+        \ echohl WarningMsg
+        \ | echo 'Reloaded: ' . expand('<afile>:t') . ' changed on disk'
+        \ | echohl None
+augroup END
 
 " Adding More Shorcuts keys using leader key.
 " Leader Key provide separate namespace for specific commands.
