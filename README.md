@@ -4,6 +4,14 @@ Vimide
 Personal dotfiles: Vim/Neovim, tmux, bash aliases and a few helper scripts.
 Originally derived from haridas/Dotfiles.
 
+This file covers installation and what is in the box. The two reference docs
+have the keys, the settings and the reasoning:
+
+- **[docs/vim.md](docs/vim.md)** -- mappings, plugins, sessions, ALE, and the
+  editor half of the agent workflow.
+- **[docs/tmux.md](docs/tmux.md)** -- keys, copy mode and the clipboard,
+  terminfo, and the `agent-pane` helper.
+
 Install
 -------
 
@@ -76,38 +84,16 @@ brew install universal-ctags neovim tmux uv
 | git | submodules | Ships with the Xcode command line tools |
 | vim | the editor | Apple's `/usr/bin/vim` (9.1) is sufficient |
 
-**The ctags trap.** macOS ships a BSD `ctags` at `/usr/bin/ctags`. It is not
-Exuberant/Universal Ctags, tagbar refuses to use it, and because the binary
-*exists* nothing obviously fails -- tagbar just never works. Install
-`universal-ctags` from Homebrew; `/opt/homebrew/bin` precedes `/usr/bin` on a
-default Homebrew PATH, so it shadows Apple's automatically. Verify with:
+**The ctags trap.** macOS ships a BSD `ctags` at `/usr/bin/ctags` that tagbar
+cannot use, and because the binary *exists* nothing obviously fails -- tagbar
+just never works. `ctags --version` must say "Universal Ctags". Full story, and
+which Homebrew formula not to install, in
+[docs/vim.md](docs/vim.md#the-ctags-trap).
 
-```sh
-ctags --version   # must say "Universal Ctags"
-```
-
-Do **not** use the older `ctags` formula (Exuberant 5.8, unmaintained since
-2009); it conflicts with `universal-ctags` and both install a `ctags` binary.
-
-**Clipboard.** `tmux.conf` picks a copy backend at load time via `if-shell`
-(`pbcopy`, `wl-copy`, or `xclip`) and both copy bindings use it through
-`copy-command`, so nothing extra is needed on either platform.
-`reattach-to-user-namespace` is *not* required -- it has been unnecessary
-since macOS 10.12 / tmux 2.6. Note that tmux runs these through a
-non-interactive `sh -c`, so the `pbcopy`/`pbpaste` aliases in `bash_aliases`
-are not visible to it; the backend has to be a real executable. On Ubuntu
-24.04 (Wayland by default) that means `wl-clipboard`, with `xclip` as the X11
-fallback:
-
-```sh
-sudo apt install wl-clipboard    # or xclip on an X11 session
-```
-
-Check which backend was chosen with:
-
-```sh
-tmux show-options -sv copy-command
-```
+**Clipboard.** Nothing extra is needed on macOS: `tmux.conf` finds `pbcopy` on
+its own, and `reattach-to-user-namespace` has been unnecessary since macOS
+10.12. On Linux install `wl-clipboard` (Wayland) or `xclip` (X11). See
+[docs/tmux.md](docs/tmux.md#clipboard).
 
 Apple's bundled Vim is built `+clipboard +terminal +textprop +popupwin` and
 `-python3 -lua`. Nothing here needs the last two, so there is no reason to
@@ -126,58 +112,57 @@ curl -LsSf https://astral.sh/uv/install.sh | sh   # uv is not in the 24.04 archi
 | universal-ctags | tagbar and tag files |
 | fontconfig | `fc-cache`, used by the installer to register the bundled fonts |
 | wl-clipboard | tmux copy-mode yanks on a Wayland session; use `xclip` on X11 |
-| python3-venv | Python virtualenvs |
-| python3-venv | Ubuntu ships `venv` separately; `scripts/newMLenv.sh` needs it |
+| python3-venv | Ubuntu ships `venv` separately from python3; `scripts/newMLenv.sh` needs it |
 
 ### Older Ubuntu (22.04, 20.04)
 
 Two things the installer carries so old boxes work without extra packages:
+`res/tmux-256color.terminfo`, compiled into `~/.terminfo` when the system has
+no such entry (without it tmux refuses to start at all), and a copy of the
+`zaibatsu` colourscheme, which only ships with Vim 8.2+ while 20.04 is on 8.1.
+Both are no-ops on a current machine.
 
-- **terminfo.** `tmux.conf` sets `default-terminal "tmux-256color"`. If that
-  entry is missing tmux refuses to start at all, so `res/tmux-256color.terminfo`
-  is compiled into `~/.terminfo` (per-user, no root) only when `infocmp` cannot
-  already find it. On anything current the step reports `ok` and does nothing.
-- **Colourscheme.** `zaibatsu` only ships with Vim 8.2+, and 20.04 is on 8.1,
-  so `vim/colors/` carries a copy. `~/.vim` precedes `$VIMRUNTIME`, so that copy
-  is what loads everywhere -- identical colours on every machine.
-
-Still outstanding on **20.04** specifically (tmux 3.0a):
-`set -sa terminal-features` and `set -s copy-command` both need tmux 3.2+, so
-copy-mode yanks fall back to the tmux buffer instead of the system clipboard,
-and truecolor is not advertised. 22.04 ships tmux 3.2a and is unaffected.
+What is still degraded on **20.04** (tmux 3.0a) is listed in
+[docs/tmux.md](docs/tmux.md#terminal-and-colour): no truecolor advertisement,
+and copy-mode yanks land in the tmux buffer rather than the system clipboard.
+22.04 ships tmux 3.2a and is unaffected.
 
 ### Optional, per project
 
-ALE runs whichever of these it finds on `PATH`, so install them per project
-(in the venv) rather than globally:
+ALE runs whichever linters and language servers it finds on `PATH` -- install
+them in the project's venv rather than globally; see
+[docs/vim.md](docs/vim.md#ale).
 
-```sh
-pip install ruff mypy flake8 pylint     # linters
-npm install -g pyright                   # language server
-```
+What is configured
+------------------
 
-Plugins
--------
+**Vim and Neovim** -- `,` is the leader. Escapes are `jjj`/`kkk`, `;` is `:`,
+searches are very-magic, `C-h/j/k/l` crosses vim splits and tmux panes alike.
+Twelve plugins live in `vim/bundle/` as submodules, loaded by pathogen: ALE,
+NERDTree, tagbar, fugitive, surround, dispatch, vsnip for snippets (`<Tab>`),
+and friends. `nvim_config/`
+sources `~/.vimrc`, so **Neovim runs the same config and the same plugins**;
+there is no Lua/LSP/treesitter setup. Sessions are opt-in per directory
+(`:SaveSess`). All of it, key by key, in **[docs/vim.md](docs/vim.md)**.
 
-Vim plugins are git submodules under `vim/bundle/`, loaded by
-[pathogen](https://github.com/tpope/vim-pathogen) (`vim/autoload/pathogen.vim`).
+**tmux** -- prefix is `C-a`, panes and windows number from 1, mouse on,
+vi copy mode with the system clipboard wired up per platform, and pane
+navigation shared with vim. **[docs/tmux.md](docs/tmux.md)**.
 
-| Plugin | Purpose |
-| --- | --- |
-| [ale](https://github.com/dense-analysis/ale) | Async lint / fix / LSP client |
-| [nerdtree](https://github.com/preservim/nerdtree) | File tree (`<C-n>`) |
-| [nerdcommenter](https://github.com/preservim/nerdcommenter) | Comment toggling |
-| [tagbar](https://github.com/preservim/tagbar) | Tag outline (`<leader>l`) — needs universal-ctags |
-| [vim-fugitive](https://github.com/tpope/vim-fugitive) | Git |
-| [vim-surround](https://github.com/tpope/vim-surround) | Surround text objects |
-| [vim-dispatch](https://github.com/tpope/vim-dispatch) | Async `:Make` (`<leader>m`) |
-| [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) | Pane/split navigation |
-| [minibufexpl](https://github.com/fholgado/minibufexpl.vim) | Buffer list |
-| [rust.vim](https://github.com/rust-lang/rust.vim) | Rust ftplugin |
-| [tlib_vim](https://github.com/tomtom/tlib_vim), [vim-addon-mw-utils](https://github.com/MarcWeber/vim-addon-mw-utils) | snipmate dependencies |
+**A coding agent in another pane** -- vim in one pane, Claude Code (or
+whatever you run) in another, on the same working tree. The editor keeps itself
+in sync with what the agent writes, and `,af` / `,al` / `,ay` / `,ae` hand it
+file, line, code and diagnostic references; `prefix a` / `A` / `P` and `Y` in
+copy mode do the same from tmux, and `scripts/agent-pane.sh` does it from a
+shell pipeline. Split across
+[docs/vim.md](docs/vim.md#coding-agent) and
+[docs/tmux.md](docs/tmux.md#coding-agent-in-another-pane).
 
-`nvim_config/init.vim` simply sources `~/.vimrc`, so Neovim runs the same
-plugin set as Vim. There is no Lua/LSP/treesitter config yet.
+**Scripts** -- `scripts/*` is linked into `~/bin` with the extension stripped.
+`newMLenv` builds a uv-based Python venv with a PyTorch and scientific stack
+(`newMLenv --help`); `agent-pane` is the agent helper above. `bash_aliases`
+adds venv activation with completion (`activate`), `ta` to attach to tmux,
+`s`/`sa` ssh helpers, and a `pbcopy`/`pbpaste` shim on Linux.
 
 Updating submodules:
 
@@ -192,7 +177,6 @@ Help tags for bundled plugins are not generated automatically. Run pathogen's
 Known rough edges
 -----------------
 
-- snipmate itself is not installed, only its two dependency bundles.
 - `minibufexpl` is unmaintained upstream.
 - Session save/restore (`SaveSess`/`RestoreSess` in `vimrc`) writes
   `.session.vim` into the working directory and hard-depends on NERDTree and
@@ -200,3 +184,10 @@ Known rough edges
 - `scripts/newMLenv.sh` installs unpinned latest versions by design; pin per
   project with a `requirements.txt` or `pyproject.toml` if you need
   reproducibility.
+- `agent-pane` builds file references relative to the git root, so they only
+  resolve if the agent's own working directory is that root. Start it from
+  there (`prefix a` inherits the calling pane's directory).
+- `updatetime=1000` is what makes `:checktime` fire while you sit still; it
+  also means a swapfile write at that rate on an idle buffer.
+- The tmux bindings call `~/bin/agent-pane` by path, so they do nothing until
+  `./createLinks.sh` has linked it.
