@@ -84,6 +84,22 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # The aliases are only useful if something sources them. Ubuntu's stock
+      # ~/.bashrc does, but a container's /root/.bashrc is the trimmed root
+      # variant that does not -- which is the case the installer has to fix
+      # itself, and the same one every macOS install hits.
+      - name: bash aliases load
+        run: |
+          set -eu
+          bash -ic 'type -t activate; alias ta' < /dev/null > /tmp/aliases.out 2>/dev/null || true
+          echo "--- what a new interactive shell has ---"; cat /tmp/aliases.out
+          if grep -q '^function$' /tmp/aliases.out && grep -q 'tmux attach' /tmp/aliases.out; then
+            echo "- bash_aliases: sourced by a new interactive shell" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "FAIL: ~/.bash_aliases is linked but nothing sources it" >&2
+            exit 1
+          fi
+
       - name: terminfo
         run: |
           set -eu
@@ -198,5 +214,8 @@ jobs:
           grep -qE 'already correct' /tmp/second.log
           if grep -qE '^\s+linked ' /tmp/second.log; then
             echo "FAIL: second run still created links" >&2; exit 1
+          fi
+          if grep -qE '^\s+updated ' /tmp/second.log; then
+            echo "FAIL: second run appended to a shell rc again" >&2; exit 1
           fi
           echo "- installer: idempotent on re-run" | tee -a "$GITHUB_STEP_SUMMARY"

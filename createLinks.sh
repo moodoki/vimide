@@ -9,6 +9,9 @@
 #   ./createLinks.sh              install / repair
 #   ./createLinks.sh --dry-run    show what would happen, change nothing
 #   ./createLinks.sh --help       usage
+#
+# Opt out of any step with --no-submodules, --no-deps, --no-shell,
+# --no-fonts or --no-terminfo.
 
 set -euo pipefail
 
@@ -39,10 +42,12 @@ DO_SUBMODULES=1
 DO_FONTS=1
 DO_DEPS=1
 DO_TERMINFO=1
+DO_SHELL=1
 
 n_ok=0        # already correct
 n_linked=0    # created or repaired
 n_backed=0    # existing file moved aside
+n_edited=0    # shell rc appended to
 n_warn=0
 
 # ---------------------------------------------------------------- output ---
@@ -55,12 +60,27 @@ fi
 ok()      { printf '%s  ok%s        %s\n'   "$c_ok"   "$c_off" "$1"; n_ok=$((n_ok + 1)); }
 linked()  { printf '%s  linked%s    %s\n'   "$c_new"  "$c_off" "$1"; n_linked=$((n_linked + 1)); }
 created() { printf '%s  created%s   %s\n'   "$c_new"  "$c_off" "$1"; n_linked=$((n_linked + 1)); }
+updated() { printf '%s  updated%s   %s\n'   "$c_new"  "$c_off" "$1"; n_edited=$((n_edited + 1)); }
 note()    { printf '  %s\n' "$1"; }
 warn()    { printf '%s  warning%s   %s\n'   "$c_warn" "$c_off" "$1" >&2; n_warn=$((n_warn + 1)); }
 section() { printf '\n%s\n' "$1"; }
 
+# Shorten a path for display. The obvious ${p/#$HOME/~} does not work: bash 5
+# tilde-expands the replacement straight back into $HOME so nothing is
+# shortened, and quoting the tilde to stop that leaves a literal backslash on
+# bash 3.2, which is what Apple still ships as /bin/bash.
+tilde() {
+    case "$1" in
+        "$HOME")   printf '~' ;;
+        "$HOME"/*) printf '~/%s' "${1#"$HOME"/}" ;;
+        *)         printf '%s' "$1" ;;
+    esac
+}
+
 usage() {
-    sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^#\{1,2\} \{0,1\}//'
+    awk 'NR == 1 { next }            # the shebang
+         /^#/    { sub(/^#+ ?/, ""); print; next }
+                 { exit }' "${BASH_SOURCE[0]}"
     exit 0
 }
 
@@ -113,19 +133,174 @@ link() {
         # different but equivalent path (e.g. ~/code -> /Volumes/code) counts
         # as already correct and is left alone.
         if [ "$dst" -ef "$src" ]; then
-            ok "${dst/#$HOME/~}"
+            ok "$(tilde "$dst")"
             return 0
         fi
         # A symlink is only a pointer, so replacing it loses nothing.
         cur="$(readlink "$dst")"
-        note "repointing ${dst/#$HOME/~} (was -> $cur)"
+        note "repointing $(tilde "$dst") (was -> $cur)"
         act rm -f "$dst"
     elif [ -e "$dst" ]; then
         backup "$dst"
     fi
 
     act ln -s "$src" "$dst"
-    linked "${dst/#$HOME/~} -> ${src#"$REPO"/}"
+    linked "$(tilde "$dst") -> ${src#"$REPO"/}"
+}
+
+# ------------------------------------------------------------------ shell ---
+# Linking ~/.bash_aliases is only half the job -- something has to source it,
+# and which file that is differs by platform. That difference is why this has
+# always worked on Linux and quietly never worked on macOS:
+#
+#   Linux    a terminal window starts a non-login interactive bash, which
+#            reads ~/.bashrc -- and Ubuntu's stock ~/.bashrc already ends with
+#            an `if [ -f ~/.bash_aliases ]` block, so the aliases load by
+#            luck rather than by anything this script did.
+#   macOS    Terminal.app and iTerm2 start every window as a *login* shell,
+#            which reads ~/.bash_profile (or ~/.bash_login, or ~/.profile --
+#            the first of the three that exists) and never ~/.bashrc on its
+#            own. Nothing on a stock macOS mentions ~/.bash_aliases at all.
+#
+# So the block goes in ~/.bashrc on both, and where the login file does not
+# already chain to ~/.bashrc we add that too -- which also fixes nested
+# non-login shells (a bare `bash`, `:!cmd` from vim) on macOS.
+
+# The line that does the work, wrapped in markers so a re-run recognises it.
+ALIASES_BLOCK='# >>> vimide >>>
+[ -f "$HOME/.bash_aliases" ] && . "$HOME/.bash_aliases"
+# <<< vimide <<<'
+
+BASHRC_BLOCK='# >>> vimide >>>
+# A terminal window starts bash as a login shell here, so this file is read
+# and ~/.bashrc is not. Chain to it, the way the Linux distributions do.
+[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+# <<< vimide <<<'
+
+# The file bash reads for a login shell: the first of these that exists.
+# Order matters -- bash stops at the first hit, so a ~/.bash_profile shadows
+# ~/.profile entirely.
+login_rc() {
+    local f
+    for f in "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile"; do
+        [ -f "$f" ] && { printf '%s' "$f"; return 0; }
+    done
+    return 1
+}
+
+# Paths that FILE sources, for `. x`, `source x`, and the `[ -s x ] && . x`
+# form that does not start the line.
+sourced_paths() {
+    [ -r "$1" ] || return 0
+    grep -oE '(^|[;&|[:space:]])(source|\.)[[:space:]]+[^[:space:];&|)]+' "$1" 2>/dev/null \
+        | sed -e 's/.*[[:space:]]//' -e 's/^["'\'']//' -e 's/["'\'']$//'
+}
+
+# Does FILE mention PATTERN outside a comment, directly or through a file it
+# sources? Static scan, deliberately: sourcing someone's profile to find out
+# what it does is not a trade an installer should make.
+rc_sources() {
+    local file="$1" pattern="$2" depth="${3:-3}" p
+    [ -r "$file" ] || return 1
+    grep -qE "^[^#]*$pattern" "$file" 2>/dev/null && return 0
+    [ "$depth" -le 0 ] && return 1
+    while IFS= read -r p; do
+        case "$p" in
+            '~'/*)        p="$HOME/${p#\~/}" ;;
+            '$HOME'/*)    p="$HOME/${p#\$HOME/}" ;;
+            '${HOME}'/*)  p="$HOME/${p#\$\{HOME\}/}" ;;
+            /*)           ;;
+            *)            continue ;;   # relative or computed; not worth guessing
+        esac
+        rc_sources "$p" "$pattern" $((depth - 1)) && return 0
+    done < <(sourced_paths "$file")
+    return 1
+}
+
+# Append a block to a shell rc, keeping a copy of what was there first. Only
+# ever adds to the end; nothing in the file is rewritten or removed.
+append_block() {
+    local file="$1" block="$2" label="$3" copy existed=1
+
+    [ -e "$file" ] || existed=0
+
+    if [ "$DRY_RUN" -eq 1 ]; then
+        if [ "$existed" -eq 0 ]; then
+            printf '  would create %s, %s\n' "$(tilde "$file")" "$label"
+        else
+            printf '  would append to %s, %s\n' "$(tilde "$file")" "$label"
+        fi
+        n_edited=$((n_edited + 1))
+        return 0
+    fi
+
+    if [ "$existed" -eq 1 ]; then
+        copy="${file}.bak-$(date +%Y%m%d%H%M%S)"
+        while [ -e "$copy" ]; do copy="${copy}~"; done
+        cp -p "$file" "$copy"
+        note "kept a copy of $(basename "$file") as $(basename "$copy")"
+    else
+        ensure_dir "$(dirname "$file")"
+    fi
+
+    # The leading newline separates the block from whatever is above it, and
+    # covers a file that does not end in one.
+    printf '\n%s\n' "$block" >> "$file"
+    updated "$(tilde "$file")  ($label)"
+}
+
+# Where a hint should tell you to put things, for whatever shell you use.
+shell_rc_hint() {
+    case "$(basename "${SHELL:-bash}")" in
+        zsh)  printf '~/.zshrc' ;;
+        bash) printf '~/.bashrc' ;;
+        *)    printf "your shell's startup file" ;;
+    esac
+}
+
+install_shell() {
+    local rc="$HOME/.bashrc" login shell_name changed=0
+
+    # bash_aliases is bash, not sh: `complete -F`, $COMP_WORDS and $COMPREPLY
+    # have no zsh equivalent, so sourcing it from ~/.zshrc would raise errors
+    # rather than help. Wire up bash regardless -- it is still what you get
+    # from `bash`, from tmux panes and over ssh -- but say so.
+    shell_name="$(basename "${SHELL:-bash}")"
+    case "$shell_name" in
+        bash) ;;
+        *) warn "your login shell is $shell_name; bash_aliases is bash-only (complete -F, \$COMPREPLY) so it is not wired into it -- the aliases apply when you run bash" ;;
+    esac
+
+    if rc_sources "$rc" 'bash_aliases'; then
+        ok "~/.bashrc sources ~/.bash_aliases"
+    else
+        append_block "$rc" "$ALIASES_BLOCK" 'sources ~/.bash_aliases'
+        changed=1
+    fi
+
+    # Second half: is ~/.bashrc itself read?
+    if login="$(login_rc)"; then
+        if rc_sources "$login" '\.bashrc' 1; then
+            ok "$(tilde "$login") sources ~/.bashrc"
+        elif [ "$OS" = macos ]; then
+            append_block "$login" "$BASHRC_BLOCK" 'sources ~/.bashrc'
+            changed=1
+        else
+            # Terminal windows here read ~/.bashrc directly, so this only
+            # costs you the aliases on a login shell -- ssh, a tty console.
+            # Not worth editing a file the distribution owns uninvited.
+            warn "$(tilde "$login") does not source ~/.bashrc, so login shells (ssh, console) will not see the aliases; terminal windows are unaffected. Add: [ -f ~/.bashrc ] && . ~/.bashrc"
+        fi
+    elif [ "$OS" = macos ]; then
+        # No login file at all: every Terminal window would read nothing.
+        append_block "$HOME/.bash_profile" "$BASHRC_BLOCK" 'sources ~/.bashrc'
+        changed=1
+    fi
+    # Linux with no login file needs nothing: terminals read ~/.bashrc.
+
+    if [ "$changed" -eq 1 ] && [ "$DRY_RUN" -eq 0 ]; then
+        note "open a new shell, or run: . ~/.bashrc"
+    fi
 }
 
 # ------------------------------------------------------------------ fonts ---
@@ -289,6 +464,7 @@ while [ $# -gt 0 ]; do
         --no-fonts)     DO_FONTS=0 ;;
         --no-deps)      DO_DEPS=0 ;;
         --no-terminfo)  DO_TERMINFO=0 ;;
+        --no-shell)     DO_SHELL=0 ;;
         -h|--help)      usage ;;
         *) printf 'unknown option: %s (try --help)\n' "$1" >&2; exit 2 ;;
     esac
@@ -322,6 +498,11 @@ link "$REPO/nvim_config"  "$CONFIG_HOME/nvim"
 link "$REPO/bash_aliases" "$HOME/.bash_aliases"
 link "$REPO/tmux.conf"    "$HOME/.tmux.conf"
 
+if [ "$DO_SHELL" -eq 1 ]; then
+    section 'Shell'
+    install_shell
+fi
+
 section 'Scripts'
 for s in "$REPO"/scripts/*; do
     [ -f "$s" ] || continue
@@ -336,10 +517,8 @@ case ":${PATH:-}:" in
             # Ubuntu's stock ~/.profile prepends ~/bin, but only if the
             # directory already existed when the session started.
             warn "~/bin is not on your PATH yet; ~/.profile adds it at login, so log out and back in (or run: . ~/.profile)"
-        elif [ "$OS" = macos ]; then
-            warn "~/bin is not on your PATH; add 'export PATH=\"\$HOME/bin:\$PATH\"' to ~/.zshrc"
         else
-            warn "~/bin is not on your PATH; add it in your shell profile to use the scripts above"
+            warn "~/bin is not on your PATH; add 'export PATH=\"\$HOME/bin:\$PATH\"' to $(shell_rc_hint) to use the scripts above"
         fi
         ;;
 esac
@@ -355,7 +534,7 @@ if [ "$DO_TERMINFO" -eq 1 ]; then
 fi
 
 section 'Summary'
-printf '  %d already correct, %d linked, %d backed up, %d warnings\n' \
-    "$n_ok" "$n_linked" "$n_backed" "$n_warn"
+printf '  %d already correct, %d linked, %d updated, %d backed up, %d warnings\n' \
+    "$n_ok" "$n_linked" "$n_edited" "$n_backed" "$n_warn"
 [ "$DRY_RUN" -eq 1 ] && printf '  (dry run -- nothing was changed)\n'
 exit 0
