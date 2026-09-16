@@ -72,7 +72,9 @@ tilde() {
 }
 
 usage() {
-    sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^#\{1,2\} \{0,1\}//'
+    awk 'NR == 1 { next }            # the shebang
+         /^#/    { sub(/^#+ ?/, ""); print; next }
+                 { exit }' "${BASH_SOURCE[0]}"
     exit 0
 }
 
