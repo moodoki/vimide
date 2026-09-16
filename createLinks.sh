@@ -59,6 +59,18 @@ note()    { printf '  %s\n' "$1"; }
 warn()    { printf '%s  warning%s   %s\n'   "$c_warn" "$c_off" "$1" >&2; n_warn=$((n_warn + 1)); }
 section() { printf '\n%s\n' "$1"; }
 
+# Shorten a path for display. The obvious ${p/#$HOME/~} does not work: bash 5
+# tilde-expands the replacement straight back into $HOME so nothing is
+# shortened, and quoting the tilde to stop that leaves a literal backslash on
+# bash 3.2, which is what Apple still ships as /bin/bash.
+tilde() {
+    case "$1" in
+        "$HOME")   printf '~' ;;
+        "$HOME"/*) printf '~/%s' "${1#"$HOME"/}" ;;
+        *)         printf '%s' "$1" ;;
+    esac
+}
+
 usage() {
     sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^#\{1,2\} \{0,1\}//'
     exit 0
@@ -113,19 +125,19 @@ link() {
         # different but equivalent path (e.g. ~/code -> /Volumes/code) counts
         # as already correct and is left alone.
         if [ "$dst" -ef "$src" ]; then
-            ok "${dst/#$HOME/~}"
+            ok "$(tilde "$dst")"
             return 0
         fi
         # A symlink is only a pointer, so replacing it loses nothing.
         cur="$(readlink "$dst")"
-        note "repointing ${dst/#$HOME/~} (was -> $cur)"
+        note "repointing $(tilde "$dst") (was -> $cur)"
         act rm -f "$dst"
     elif [ -e "$dst" ]; then
         backup "$dst"
     fi
 
     act ln -s "$src" "$dst"
-    linked "${dst/#$HOME/~} -> ${src#"$REPO"/}"
+    linked "$(tilde "$dst") -> ${src#"$REPO"/}"
 }
 
 # ------------------------------------------------------------------ fonts ---
