@@ -36,6 +36,7 @@ at this repo is left alone (compared by inode, so an equivalent path such as
 | `--no-submodules` | Skip `git submodule sync/update` |
 | `--no-fonts` | Skip font installation |
 | `--no-deps` | Skip the dependency check |
+| `--no-shell` | Skip wiring `~/.bash_aliases` into your shell |
 | `-h`, `--help` | Usage |
 
 What it links:
@@ -56,6 +57,36 @@ Fonts differ by platform, because the two font systems do:
   would be silently ignored.
 - **Linux** -- one directory link into `$XDG_DATA_HOME/fonts` (or `~/.fonts`
   if that already exists), then `fc-cache -f`. fontconfig does recurse.
+
+Loading the aliases differs by platform too, because bash reads a different
+file on each:
+
+- **Linux** -- a terminal window starts a non-login bash, which reads
+  `~/.bashrc`, and Ubuntu's stock `~/.bashrc` already sources
+  `~/.bash_aliases`. Usually there is nothing to do.
+- **macOS** -- Terminal.app and iTerm2 start every window as a *login* shell,
+  which reads `~/.bash_profile` (or `~/.bash_login`, or `~/.profile` -- the
+  first that exists) and never `~/.bashrc`. Nothing on a stock macOS mentions
+  `~/.bash_aliases`, so the symlink on its own does nothing at all.
+
+So the installer appends a marked block to `~/.bashrc`:
+
+```sh
+# >>> vimide >>>
+[ -f "$HOME/.bash_aliases" ] && . "$HOME/.bash_aliases"
+# <<< vimide <<<
+```
+
+and on macOS also makes sure the login file chains to `~/.bashrc`, the way the
+Linux distributions do -- which fixes nested non-login shells (a bare `bash`,
+`:!cmd` from vim) at the same time. It only ever appends: nothing already in
+the file is rewritten, a copy is kept beside it as `*.bak-YYYYmmddHHMMSS`, and
+a re-run recognises its own block and leaves it alone. `--no-shell` skips the
+whole thing.
+
+`bash_aliases` is bash, not sh -- `complete -F` and `$COMPREPLY` have no zsh
+equivalent -- so it is never wired into `~/.zshrc`. If your login shell is zsh
+the installer says so, and the aliases apply whenever you run bash.
 
 The dependency check reports only and installs nothing, printing the right
 `brew install` or `sudo apt install` hint per platform. Note that macOS ships
@@ -162,7 +193,8 @@ shell pipeline. Split across
 `newMLenv` builds a uv-based Python venv with a PyTorch and scientific stack
 (`newMLenv --help`); `agent-pane` is the agent helper above. `bash_aliases`
 adds venv activation with completion (`activate`), `ta` to attach to tmux,
-`s`/`sa` ssh helpers, and a `pbcopy`/`pbpaste` shim on Linux.
+`s`/`sa` ssh helpers, and a `pbcopy`/`pbpaste` shim on Linux. The installer
+wires it into `~/.bashrc` for you; see [above](#install).
 
 Updating submodules:
 
