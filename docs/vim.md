@@ -245,6 +245,13 @@ They live in **`vim/vsnip/`** in this repo, because `~/.vim` *is* that
 directory -- so they are versioned along with everything else instead of being
 stranded in `~/.vsnip` on one machine.
 
+`python.json` is there already: the abseil snippets (`abslmain`, `abstr`,
+`abint`, `abfloat`, `abbool`, `abreq`, `abvalidate`, `ablog`) that used to live
+in a personal fork of SnipMate, ported to the VSCode/LSP format. Placeholders
+were renumbered on the way across -- SnipMate treats `$0` as an ordinary stop,
+LSP treats it as where the cursor finishes -- so tab order is now
+flag, value, help.
+
 | Command | Does |
 | --- | --- |
 | `:VsnipOpen` | edit the snippet file for this buffer's filetype (creates it on first use) |
@@ -308,6 +315,16 @@ the two failure modes.
 `tlib_vim` and `vim-addon-mw-utils`, which were here as SnipMate's dependency
 bundles without SnipMate itself, were dropped at the same time -- nothing uses
 them now.
+
+Dropping a submodule leaves its working directory behind, though, and pathogen
+loads whatever is in `vim/bundle/`. So `snipmate`, `tlib_vim`,
+`vim-addon-mw-utils`, `syntastic` and `vim-virtualenv` went on being sourced
+here long after git had stopped tracking them -- SnipMate announcing `The
+legacy SnipMate parser is deprecated` on every startup was the visible symptom,
+a second snippet engine racing vsnip for `<Tab>` the invisible one. They are
+gone from disk now. **If you see that message on another machine, the fix is
+`rm -rf vim/bundle/{snipmate,tlib_vim,vim-addon-mw-utils}` there too**, not a
+`g:snipMate.snippet_version` setting in the vimrc.
 
 Sessions
 --------

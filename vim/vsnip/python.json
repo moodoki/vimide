@@ -1,0 +1,57 @@
+{
+  "absl main": {
+    "prefix": "abslmain",
+    "description": "abseil app skeleton: FLAGS, main(argv), app.run",
+    "body": [
+      "from absl import app, flags",
+      "",
+      "FLAGS = flags.FLAGS",
+      "#flags.DEFINE_string('strval', None, 'help')",
+      "#flags.DEFINE_integer('intval', None, 'help')",
+      "#flags.DEFINE_float('floatval', None, 'help')",
+      "#flags.DEFINE_boolean('boolval', None, 'help')",
+      "",
+      "",
+      "def main(argv):",
+      "\tif argv:",
+      "\t\tprint('Unprocessed args:', argv)",
+      "\t$0",
+      "",
+      "",
+      "if __name__ == '__main__':",
+      "\tapp.run(main)"
+    ]
+  },
+  "absl DEFINE_string": {
+    "prefix": "abstr",
+    "body": ["flags.DEFINE_string('${1:flag}', ${2:None}, '${3:help}')$0"]
+  },
+  "absl DEFINE_integer": {
+    "prefix": "abint",
+    "body": ["flags.DEFINE_integer('${1:flag}', ${2:0}, '${3:help}')$0"]
+  },
+  "absl DEFINE_float": {
+    "prefix": "abfloat",
+    "body": ["flags.DEFINE_float('${1:flag}', ${2:None}, '${3:help}')$0"]
+  },
+  "absl DEFINE_boolean": {
+    "prefix": "abbool",
+    "body": ["flags.DEFINE_boolean('${1:flag}', ${2:False}, '${3:help}')$0"]
+  },
+  "absl mark_flag_as_required": {
+    "prefix": "abreq",
+    "body": ["flags.mark_flag_as_required('${1:flag}')$0"]
+  },
+  "absl register_validator": {
+    "prefix": "abvalidate",
+    "body": [
+      "flags.register_validator('${1:flag}',",
+      "                         ${2:val_fn(x)},",
+      "                         message='${3:val_mesg}')$0"
+    ]
+  },
+  "absl logging import": {
+    "prefix": "ablog",
+    "body": ["from absl.logging import info, warn, fatal, error, debug$0"]
+  }
+}
