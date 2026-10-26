@@ -194,7 +194,10 @@ shell pipeline. Split across
 
 **Scripts** -- `scripts/*` is linked into `~/bin` with the extension stripped.
 `newMLenv` builds a uv-based Python venv with a PyTorch and scientific stack
-(`newMLenv --help`); `agent-pane` is the agent helper above. `bash_aliases`
+(`newMLenv --help`); `agent-pane` is the agent helper above. `tmux-ensure`
+starts a missing tmux server in its own systemd `--user` scope, so a desktop
+logout does not take it down (with `loginctl enable-linger`); `ta` and `sa`
+call it first, and it does nothing where there is no systemd. `bash_aliases`
 adds venv activation with completion (`activate`), `ta` to attach to tmux,
 `s`/`sa` ssh helpers, and a `pbcopy`/`pbpaste` shim on Linux. The installer
 wires it into `~/.bashrc` for you; see [above](#install).

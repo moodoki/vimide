@@ -29,7 +29,9 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 alias ipnb='jupyter notebook --no-browser --ip="*"'
-alias ta='tmux attach || tmux new'
+# tmux-ensure starts a missing server in its own systemd scope, so a desktop logout
+# does not take it down; without it (other hosts) this is plain attach-or-new.
+ta(){ [ -x ~/bin/tmux-ensure ] && ~/bin/tmux-ensure; tmux attach || tmux new; }
 
 if ! hash pbcopy 2>/dev/null; then
     alias pbcopy='xclip -selection clipboard -i'
@@ -41,7 +43,7 @@ ssh_portforward(){
 }
 
 ssh_tmuxattach(){
-    ssh $1 -t 'tmux attach || tmux new'
+    ssh $1 -t '[ -x ~/bin/tmux-ensure ] && ~/bin/tmux-ensure; tmux attach || tmux new'
 }
 
 alias s='ssh_portforward'
