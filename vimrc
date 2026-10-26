@@ -465,3 +465,8 @@ endfunction
 command! SaveSess   call s:EnableAndSave()
 command! NoSaveSess let g:savesession = 0
 
+" Machine-specific settings go in ~/.vimrc.local, which is not in this repo.
+" Sourced last so it can override anything above.
+if filereadable(expand('~/.vimrc.local'))
+    execute 'source ' . fnameescape(expand('~/.vimrc.local'))
+endif

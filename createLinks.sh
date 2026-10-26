@@ -498,6 +498,15 @@ link "$REPO/nvim_config"  "$CONFIG_HOME/nvim"
 link "$REPO/bash_aliases" "$HOME/.bash_aliases"
 link "$REPO/tmux.conf"    "$HOME/.tmux.conf"
 
+# The shared files above end by sourcing an untracked per-machine file, if there is
+# one. Never created here; listed so an override on this machine is not a surprise.
+section 'Local overrides (this machine only, not in the repo)'
+n_local=0
+for f in "$HOME/.tmux.local.conf" "$HOME/.bash_aliases.local" "$HOME/.vimrc.local"; do
+    if [ -f "$f" ]; then note "$(tilde "$f")"; n_local=$((n_local + 1)); fi
+done
+[ "$n_local" -eq 0 ] && note "none (~/.tmux.local.conf, ~/.bash_aliases.local, ~/.vimrc.local)"
+
 if [ "$DO_SHELL" -eq 1 ]; then
     section 'Shell'
     install_shell

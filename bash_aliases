@@ -70,3 +70,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
     alias ls='ls --color=auto'
 fi
+
+# Machine-specific aliases go in ~/.bash_aliases.local, which is not in this repo.
+# Sourced last so it can override anything above.
+if [ -f ~/.bash_aliases.local ]; then . ~/.bash_aliases.local; fi

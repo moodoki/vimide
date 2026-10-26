@@ -50,6 +50,9 @@ What it links:
 | `tmux.conf` | `~/.tmux.conf` |
 | `scripts/*` | `~/bin/*` (extension stripped) |
 
+Settings for one machine only go in local files outside the repo; see
+[Machine-local config](#machine-local-config).
+
 Fonts differ by platform, because the two font systems do:
 
 - **macOS** -- each `.ttf` is linked individually into `~/Library/Fonts`.
@@ -223,3 +226,57 @@ Known rough edges
   also means a swapfile write at that rate on an idle buffer.
 - The tmux bindings call `~/bin/agent-pane` by path, so they do nothing until
   `./createLinks.sh` has linked it.
+
+Machine-local config
+--------------------
+
+This repo is shared between machines, so anything that is true of one machine
+only (a path with a uid in it, a host's ssh agent, a local alias) goes in a
+file outside the repo instead. `tmux.conf`, `bash_aliases` and `vimrc` each end
+by loading a local file if it exists, so it can override anything shared:
+
+| Shared file | Local file, loaded last | Comment syntax |
+| --- | --- | --- |
+| `tmux.conf` | `~/.tmux.local.conf` | `#` |
+| `bash_aliases` | `~/.bash_aliases.local` | `#` |
+| `vimrc` | `~/.vimrc.local` | `"` |
+
+`~/.bashrc` is not in the repo, so it is per-machine already.
+
+To add one, create the file in your home directory (not in this repo, and not
+as a link) and reload:
+
+```sh
+# tmux: a setting for this machine only
+cat >> ~/.tmux.local.conf <<'EOF2'
+set -g status-style bg=colour52      # e.g. a red status bar on the production box
+EOF2
+tmux source-file ~/.tmux.conf        # or prefix r
+
+# bash: an alias for this machine only
+echo "alias data='cd /mnt/data/projects'" >> ~/.bash_aliases.local
+. ~/.bash_aliases                    # or open a new shell
+
+# vim: a setting for this machine only
+echo 'set colorcolumn=100' >> ~/.vimrc.local
+```
+
+Things to know:
+
+- A missing local file is fine; each hook checks first, so a new machine needs
+  none of them.
+- They are loaded last, so a later `set` wins over the shared one. To remove a
+  shared binding, unbind or unset it explicitly in the local file.
+- `./createLinks.sh` never creates or touches them, and lists the ones present
+  under *Local overrides*, so you can see what a machine overrides.
+- They are not backed up anywhere. Keep them short, and put anything that would
+  be useful on every machine in the shared files instead.
+
+Example: the desktop keeps tmux on an ssh agent that survives logout
+(`ssh-agent-persistent.service`), which would break agent forwarding on hosts
+without one, so it lives in that machine's `~/.tmux.local.conf`:
+
+```tmux
+set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_CONNECTION WINDOWID XAUTHORITY"
+set-environment -g SSH_AUTH_SOCK "/run/user/1001/ssh-agent.socket"
+```
